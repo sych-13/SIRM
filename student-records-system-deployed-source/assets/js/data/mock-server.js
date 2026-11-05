@@ -7,8 +7,9 @@
 (function (root, factory) {
   if (typeof module !== 'undefined' && module.exports) module.exports = factory;
   else root.SIRMS_createMockServer = factory;
-})(typeof globalThis !== 'undefined' ? globalThis : this, function createMockServer(options = {}) {
+})(typeof globalThis !== 'undefined' ? globalThis : this, function createMockServer(options) {
   'use strict';
+  options = options || {};
   const DB_KEY = 'sirms_mock_db_v2';
   const SESSION_KEY = 'sirms_mock_session';
   const F = options.fixtures || (typeof window !== 'undefined' ? window.SIRMS_FIXTURES : require('./fixtures.js'));

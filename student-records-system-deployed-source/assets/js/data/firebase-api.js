@@ -7,6 +7,11 @@
   const rows = (snapshot) => snapshot.docs.map((d) => ({ ...d.data(), id: Number(d.id) }));
   const fail = (message, status = 400, errors = {}) => { throw new ApiError(message, status, errors); };
   const equal = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+  const timestampNow = () => {
+    const date = new Date();
+    date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
+    return date.toISOString().slice(0, 19).replace('T', ' ');
+  };
 
   async function getRows(name, conditions = []) {
     const f = C();
@@ -79,6 +84,38 @@
 
   async function saveDiff(before, after) {
     const f = C();
+    if (before.role?.role === 'teacher') {
+      // Teachers receive only assigned subjects and related records. Persist
+      // grade edits and audit entries directly; rebuilding derived fields from
+      // that partial view would overwrite teacher assignments for other classes.
+      const oldRecords = new Map((before.records || []).map((row) => [String(row.id), row]));
+      const batch = f.writeBatch(f.db);
+      let changed = 0;
+      for (const row of after.records || []) {
+        const previous = oldRecords.get(String(row.id));
+        if (!previous) continue;
+        const keys = ['grade', 'remarks', 'encoded_by', 'updated_at'];
+        if (keys.some((key) => !equal(previous[key] ?? null, row[key] ?? null))) {
+          batch.update(f.doc(f.db, 'academic_records', String(row.id)), {
+            grade: row.grade ?? null,
+            remarks: row.remarks ?? null,
+            encoded_by: row.encoded_by ?? null,
+            updated_at: row.updated_at,
+          });
+          changed++;
+        }
+      }
+      for (const row of after.logs || []) {
+        if ((before.logs || []).some((old) => old.id === row.id)) continue;
+        const id = Date.now() * 1000 + Math.floor(Math.random() * 1000);
+        batch.set(f.doc(f.db, 'system_logs', String(id)), {
+          ...row, id, actor_uid: before.users.find((user) => user.id === row.user_id)?.uid || f.auth.currentUser.uid,
+        });
+        changed++;
+      }
+      if (changed) await batch.commit();
+      return;
+    }
     addDerivedFields(after, before.role);
     const batch = f.writeBatch(f.db);
     let changed = 0;
@@ -151,7 +188,7 @@
       const profile = before.users.find((u) => u.uid === identity.uid);
       if (profile) {
         const id = Date.now() * 1000 + Math.floor(Math.random() * 1000);
-        const createdAt = new Date().toISOString().slice(0, 19).replace('T', ' ');
+        const createdAt = timestampNow();
         await C().setDoc(C().doc(C().db, 'users', String(profile.id)), { last_login_at: createdAt }, { merge: true });
         await C().setDoc(C().doc(C().db, 'system_logs', String(id)), {
           id, user_id: profile.id, actor_uid: identity.uid, action: 'login',
@@ -178,6 +215,10 @@
     }
     const result = engine.handle(method, path, query || {}, payload);
     if (!result.success) fail(result.message, result.status, result.errors);
+    // Read requests must never enter the Firestore batch-write path. Apart from
+    // avoiding unnecessary writes, this keeps teacher/student reads compatible
+    // with their intentionally read-only role permissions.
+    if (method === 'GET') return result.data;
     const after = engine.getData();
     let createdAccount;
     if (method === 'POST' && path === '/users') {

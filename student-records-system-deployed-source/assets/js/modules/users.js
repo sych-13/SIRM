@@ -42,6 +42,10 @@
       ${userModal()}`;
 
     const formEl = $('#userForm'); const formM = new bootstrap.Modal($('#userModal'));
+    const formModalEl = $('#userModal');
+    let formModalReady = false;
+    formModalEl.addEventListener('shown.bs.modal', () => { formModalReady = true; $('#saveUser').disabled = false; });
+    formModalEl.addEventListener('hide.bs.modal', () => { formModalReady = false; });
     const picker = UI.studentPicker('uStudent', {
       onSelect: (s) => { // prefill from the student record when creating a student account
         if (!s || editing || !s.email) return;
@@ -112,6 +116,7 @@
 
     function openForm(u) {
       editing = u || null; formEl.reset(); UI.showFieldErrors(formEl, {}); picker.clear();
+      formModalReady = false; $('#saveUser').disabled = true;
       $('#userModalTitle').textContent = u ? `Edit ${u.name}` : 'Create user account';
       $('#saveUser').innerHTML = u ? '<i class="bi bi-check2"></i>Save changes' : '<i class="bi bi-person-plus"></i>Create account';
       $('#uPwBox').classList.toggle('d-none', !!u);
@@ -127,6 +132,7 @@
     }
     formEl.addEventListener('submit', async (e) => {
       e.preventDefault();
+      if (!formModalReady) return;
       const data = Object.fromEntries(new FormData(formEl));
       if (editing && editing.id === me.id) { data.role = editing.role; data.status = editing.status; }
       const errs = {};

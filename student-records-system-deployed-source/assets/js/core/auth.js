@@ -3,6 +3,15 @@
   'use strict';
   const KEY = 'sirms_user';
   const HOME = { admin: '#/dashboard', teacher: '#/dashboard', student: '#/dashboard' };
+  const AUTH_ERRORS = {
+    'auth/invalid-credential': 'Mali ang email o password. Subukan ulit.',
+    'auth/wrong-password': 'Mali ang email o password. Subukan ulit.',
+    'auth/user-not-found': 'Walang account para sa email na iyan.',
+    'auth/invalid-email': 'Hindi wastong email address.',
+    'auth/user-disabled': 'Naka-disable ang account. Makipag-ugnayan sa administrator.',
+    'auth/too-many-requests': 'Napakaraming pagsubok. Maghintay muna bago subukan ulit.',
+    'auth/network-request-failed': 'Hindi maabot ang Firebase. Suriin ang internet connection at subukan ulit.',
+  };
 
   window.Auth = {
     async login(identifier, password, remember) {
@@ -16,7 +25,8 @@
         (remember ? localStorage : sessionStorage).setItem(KEY, JSON.stringify(user));
         return user;
       } catch (error) {
-        await firebase.signOut(firebase.auth);
+        await firebase.signOut(firebase.auth).catch(() => {});
+        if (AUTH_ERRORS[error.code]) throw new ApiError(AUTH_ERRORS[error.code], 401);
         throw error;
       }
     },
