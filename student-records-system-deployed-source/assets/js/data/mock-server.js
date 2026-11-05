@@ -423,6 +423,27 @@
     return ok(row, { message: 'Subject created.' });
   });
 
+  route('POST', '/subjects/starter-catalog', ['admin'], (u, _, body) => {
+    const templates = Array.isArray(body.subjects) ? body.subjects : [];
+    if (!templates.length || templates.length > 100) return fail(422, 'A valid starter subject list is required.');
+    const existing = new Set(db.subjects.map((s) => String(s.code).toUpperCase()));
+    const seen = new Set(); const pending = []; let skipped = 0;
+    for (const template of templates) {
+      const code = String(template.code || '').trim().toUpperCase();
+      if (existing.has(code) || seen.has(code)) { skipped++; continue; }
+      const { data, errors } = validateSubject({ ...template, code, teacher_id: null });
+      if (Object.keys(errors).length) return invalid({ starter_catalog: `Invalid starter subject ${code || '(missing code)'}.` });
+      seen.add(code); pending.push(data);
+    }
+    const createdAt = now();
+    pending.forEach((data) => db.subjects.push({ id: nextId(db.subjects), ...data, created_at: createdAt, updated_at: createdAt }));
+    if (pending.length) {
+      log(u, 'create', `Added ${pending.length} starter subjects to the catalog`);
+      save();
+    }
+    return ok({ added: pending.length, skipped, total: db.subjects.length }, { message: 'Starter subjects added to the Firestore catalog.' });
+  });
+
   route('PUT', '/subjects/:id', ['admin'], (u, p, body) => {
     const idx = db.subjects.findIndex((x) => x.id === p.id);
     if (idx < 0) return fail(404, 'Subject not found.');

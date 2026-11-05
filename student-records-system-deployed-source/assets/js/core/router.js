@@ -6,6 +6,7 @@
   'use strict';
   const routes = {};
   let currentCleanup = null;
+  let resolveSequence = 0;
 
   const parse = () => {
     const raw = (location.hash || '#/dashboard').slice(1);
@@ -24,6 +25,7 @@
       if (replace) history.replaceState(null, '', hash); else location.hash = hash;
     },
     async resolve() {
+      const sequence = ++resolveSequence;
       const user = Auth.cached();
       const { path, query } = parse();
       const def = routes[path];
@@ -45,6 +47,8 @@
       window.scrollTo(0, 0);
       container.classList.remove('page-enter');
       container.innerHTML = UI.pageSkeleton();
+      await new Promise((resolve) => setTimeout(resolve, 150));
+      if (sequence !== resolveSequence) return;
       const render = typeof def.render === 'function' ? def.render : def.render[user.role];
       const page = render(container, { query, user });
       container.classList.add('page-enter');

@@ -8,17 +8,20 @@
   const COLS = 6;
 
   async function render(view, { query }) {
-    let meta; let teachers;
-    try { [meta, teachers] = await Promise.all([Api.get('/meta'), Api.get('/teachers')]); } catch (err) {
+    let meta; let teachers; let catalog;
+    try { [meta, teachers, catalog] = await Promise.all([Api.get('/meta'), Api.get('/teachers'), Api.get('/subjects')]); } catch (err) {
       view.innerHTML = `<div class="card">${UI.errorState(err, 'retryMeta')}</div>`; $('#retryMeta').onclick = () => Router.resolve(); return;
     }
     const programOpts = [...meta.programs.map((p) => [p.code, `${p.code} · ${p.name}`]), ['GEN', 'GEN · General Education']];
+    const templates = window.SIRMS_SUBJECT_TEMPLATES || [];
+    let existingCodes = new Set(catalog.map((s) => String(s.code).toUpperCase()));
+    const templateOptions = () => templates.filter((t) => !existingCodes.has(t.code)).map((t) => `<option value="${esc(t.code)}">${esc(t.program)} · ${esc(t.code)} · ${esc(t.name)}</option>`).join('');
     const state = { search: query.search || '', program: query.program || '', teacher_id: query.teacher_id || '' };
 
     view.innerHTML = `<div id="subRoot">
       <div class="d-flex flex-wrap align-items-end justify-content-between gap-3 mb-3">
         <div><h2 class="h4 fw-bold mb-1">Subject catalog</h2><p class="text-muted mb-0">Subject codes, units and the faculty assigned to encode grades.</p></div>
-        <button class="btn btn-primary" id="addSub"><i class="bi bi-plus-lg"></i>Add subject</button>
+        <div class="d-flex flex-wrap gap-2"><button class="btn btn-soft" id="seedSub"><i class="bi bi-database-add"></i>Add starter subjects</button><button class="btn btn-primary" id="addSub"><i class="bi bi-plus-lg"></i>Add subject</button></div>
       </div>
       <div class="card">
         <div class="toolbar">
@@ -37,6 +40,7 @@
         <form id="subForm" novalidate class="d-contents">
         <div class="modal-header"><h2 class="modal-title" id="subModalTitle">Add subject</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
         <div class="modal-body"><div class="row g-3">
+          <div class="col-12"><label class="form-label" for="s_template">Starter subject template</label><select class="form-select" id="s_template"><option value="">Custom subject · enter details below</option>${templateOptions()}</select><div class="form-text">Choose a suggestion to fill the fields, or enter a custom subject. Saved subjects are stored in Firestore. Confirm templates against your school curriculum.</div></div>
           <div class="col-md-5"><label class="form-label" for="s_code">Subject code <span class="req">*</span></label><input class="form-control text-uppercase" id="s_code" name="code" maxlength="20" placeholder="IT101" required><div class="invalid-feedback" data-for="code"></div></div>
           <div class="col-md-3"><label class="form-label" for="s_units">Units <span class="req">*</span></label><input class="form-control" id="s_units" name="units" type="number" min="1" max="10" required><div class="invalid-feedback" data-for="units"></div></div>
           <div class="col-md-4"><label class="form-label" for="s_program">Program <span class="req">*</span></label><select class="form-select" id="s_program" name="program" required>${UI.options(programOpts.map(([v]) => v), '', 'Select…')}</select><div class="invalid-feedback" data-for="program"></div></div>
@@ -49,13 +53,22 @@
     const formEl = $('#subForm'); const formM = new bootstrap.Modal($('#subModal'));
     let rows = []; let editing = null; let reqId = 0;
 
+    function refreshTemplateOptions() {
+      const select = $('#s_template'); const selected = select.value;
+      select.innerHTML = `<option value="">Custom subject · enter details below</option>${templateOptions()}`;
+      if ([...select.options].some((o) => o.value === selected)) select.value = selected;
+    }
+
     async function load() {
       const my = ++reqId;
       Router.setQuery(state);
       $('#rows').innerHTML = UI.skeletonRows(COLS, 6);
       try {
-        rows = await Api.get('/subjects', state);
+        const [all, filtered] = await Promise.all([Api.get('/subjects'), Api.get('/subjects', state)]);
         if (my !== reqId) return;
+        rows = filtered;
+        existingCodes = new Set(all.map((s) => String(s.code).toUpperCase()));
+        refreshTemplateOptions();
         draw();
       } catch (err) { if (my === reqId) { $('#rows').innerHTML = `<tr><td colspan="${COLS}">${UI.errorState(err, 'retryList')}</td></tr>`; $('#retryList').onclick = load; } }
     }
@@ -85,6 +98,26 @@
     const clearFilters = () => { Object.assign(state, { search: '', program: '', teacher_id: '' }); ['#fSearch', '#fProgram', '#fTeacher'].forEach((s) => { $(s).value = ''; }); load(); };
     $('#fReset').onclick = clearFilters;
     $('#addSub').onclick = () => openForm();
+    $('#s_template').addEventListener('change', (e) => {
+      const template = templates.find((t) => t.code === e.target.value);
+      if (!template) return;
+      formEl.elements.code.value = template.code;
+      formEl.elements.name.value = template.name;
+      formEl.elements.units.value = template.units;
+      formEl.elements.program.value = template.program;
+    });
+    $('#seedSub').onclick = async (e) => {
+      if (!templates.length) { UI.toast('Starter subject templates are not available.', 'error'); return; }
+      const yes = await UI.confirm({ title: 'Add starter subjects?', confirmText: 'Add subjects', message: 'This adds editable starter examples to the Firestore subject catalog. Existing subject codes will be skipped. Review the list against your official curriculum; you can still add custom subjects.' });
+      if (!yes) return;
+      const btn = e.currentTarget; UI.setBusy(btn, true, 'Adding…');
+      try {
+        const result = await Api.post('/subjects/starter-catalog', { subjects: templates });
+        UI.toast(`${result.added} starter subjects added; ${result.skipped} existing codes skipped.`);
+        await load();
+      } catch (err) { UI.toast(err.message, 'error'); }
+      finally { UI.setBusy(btn, false); }
+    };
 
     $('#subRoot').addEventListener('click', (e) => {
       const b = e.target.closest('[data-act]'); if (!b) return;
@@ -97,6 +130,7 @@
 
     function openForm(s) {
       editing = s || null; formEl.reset(); UI.showFieldErrors(formEl, {});
+      $('#s_template').value = '';
       $('#subModalTitle').textContent = s ? `Edit ${s.code}` : 'Add subject';
       $('#saveSub').innerHTML = s ? '<i class="bi bi-check2"></i>Save changes' : '<i class="bi bi-plus-lg"></i>Add subject';
       if (s) ['code', 'name', 'units', 'program', 'teacher_id'].forEach((f) => { formEl.elements[f].value = s[f] ?? ''; });
