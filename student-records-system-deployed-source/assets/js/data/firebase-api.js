@@ -41,38 +41,45 @@
     };
   }
 
-  function addDerivedFields(state) {
+  function addDerivedFields(state, role) {
     const userById = new Map(state.users.map((u) => [u.id, u]));
     const subjectById = new Map(state.subjects.map((s) => [s.id, s]));
     const studentOwner = new Map(state.users.filter((u) => u.role === 'student' && u.student_id && u.uid).map((u) => [u.student_id, u.uid]));
     for (const s of state.subjects) {
       const teacher = userById.get(Number(s.teacher_id));
-      s.teacher_uids = teacher && teacher.uid ? [teacher.uid] : s.teacher_uids || [];
+      if (s.teacher_id == null || !Number(s.teacher_id)) s.teacher_uids = [];
+      else if (teacher && teacher.uid) s.teacher_uids = [teacher.uid];
+      else if (role?.role === 'admin') s.teacher_uids = [];
+      else s.teacher_uids = s.teacher_uids || [];
     }
     const teachersForStudent = new Map();
     for (const r of state.records) {
       const subject = subjectById.get(Number(r.subject_id));
       const student = state.students.find((s) => s.id === Number(r.student_id));
       r.teacher_uids = subject ? subject.teacher_uids || [] : r.teacher_uids || [];
-      r.owner_uid = student ? student.owner_uid || studentOwner.get(student.id) || null : null;
+      r.owner_uid = student
+        ? (role?.role === 'admin' || role?.role === 'student' ? studentOwner.get(student.id) || null : r.owner_uid || student.owner_uid || null)
+        : null;
       const current = teachersForStudent.get(Number(r.student_id)) || new Set();
       (r.teacher_uids || []).forEach((uid) => current.add(uid));
       teachersForStudent.set(Number(r.student_id), current);
     }
     for (const s of state.students) {
-      s.owner_uid = s.owner_uid || studentOwner.get(s.id) || null;
+      if (role?.role === 'admin' || role?.role === 'student') s.owner_uid = studentOwner.get(s.id) || null;
       s.teacher_uids = [...(teachersForStudent.get(s.id) || new Set())];
     }
     for (const e of state.enrollments) {
       const student = state.students.find((s) => s.id === Number(e.student_id));
-      e.owner_uid = student ? student.owner_uid || null : null;
+      e.owner_uid = student
+        ? (role?.role === 'admin' || role?.role === 'student' ? student.owner_uid || null : e.owner_uid || student.owner_uid || null)
+        : null;
       e.teacher_uids = student ? student.teacher_uids || [] : [];
     }
   }
 
   async function saveDiff(before, after) {
     const f = C();
-    addDerivedFields(after);
+    addDerivedFields(after, before.role);
     const batch = f.writeBatch(f.db);
     let changed = 0;
     for (const [key, name] of Object.entries(COLLECTIONS)) {
