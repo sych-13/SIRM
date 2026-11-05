@@ -37,7 +37,10 @@ service cloud.firestore {
     match /users/{id} {
       allow get: if admin() || (activeUser() && resource.data.uid == request.auth.uid);
       allow list: if admin() || (activeUser() && resource.data.uid == request.auth.uid);
-      allow create, update, delete: if admin();
+      allow create, delete: if admin();
+      allow update: if admin() || (activeUser()
+        && resource.data.uid == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['last_login_at']));
     }
 
     // Minimal teacher names used to render records; email addresses are not stored here.

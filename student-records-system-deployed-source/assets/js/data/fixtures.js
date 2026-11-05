@@ -1,11 +1,9 @@
 /* =========================================================
    FIXTURES — realistic stub data for Milestone 1.
    ---------------------------------------------------------
-   Every record here mirrors a row in the planned MySQL schema
+   Program and academic-term metadata used by the client data engine
    (users, students, enrollments, subjects, academic_records,
-   system_logs). When the PHP REST API goes live (see PLAN.md),
-   this file is no longer loaded: set CONFIG.USE_MOCK_API = false
-   in core/config.js and the same screens read real data.
+   No student fixtures from this file are loaded into Firebase.
    ========================================================= */
 (function (root) {
   'use strict';

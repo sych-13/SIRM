@@ -1,6 +1,6 @@
 # SIRMS Firebase setup (Spark / $0 billing)
 
-SIRMS signs in with Firebase Authentication and reads or writes Firestore directly under role-based Firestore Security Rules. This setup does not use Cloud Functions or require a billing account. Firebase web configuration is public by design; access to records is controlled by Authentication and Firestore Rules.
+SIRMS signs in with Firebase Authentication and reads or writes Firestore directly under role-based Firestore Security Rules. Firebase web configuration is public by design; access to records is controlled by Authentication and Firestore Rules.
 
 ## 1. Firebase Console settings
 
@@ -24,7 +24,7 @@ npx.cmd --yes firebase-tools@latest use sirm-cf763
 npx.cmd --yes firebase-tools@latest deploy --only hosting,firestore:rules
 ```
 
-The app URL is `https://sirm-cf763.web.app`. The deployment command intentionally excludes Cloud Functions.
+The app URL is `https://sirm-cf763.web.app`.
 
 ## 3. Create an administrator account and profile
 
@@ -57,9 +57,9 @@ Never store passwords in Firestore.
 
 ## 4. Add other accounts
 
-For each teacher or student, create the email/password account in **Authentication → Users**. Then add a numeric `users/{id}` profile with `id`, matching Auth `uid`, `name`, `email`, `username`, `role`, `status: active`, `title` (teacher) or `student_id` (student), and timestamps. Also add `user_roles/{uid}` with `uid`, `user_id`, `role`, `status`, and `student_id` (null except for a student). For active teachers, add `teacher_directory/{id}` with `id`, `name`, `title`, `role: teacher`, and `status: active`.
+After the first administrator signs in, create teacher and student accounts from **User accounts → Create account** in the app. The app creates the Firebase Auth account and the linked Firestore profile, role record, and teacher directory entry. For the initial administrator only, use Firebase Console and the manual profile bootstrap above.
 
-Create Auth accounts in Firebase Console. Password resets can be sent from the User Accounts screen or from Firebase Console. When updating a user's email, update Authentication first, then update their Firestore profile.
+Password resets can be sent from the User Accounts screen or from Firebase Console. When updating a user's email, update Authentication first, then update their Firestore profile.
 
 ## 5. Record access fields
 
@@ -74,4 +74,4 @@ Admin writes through the app derive assignment UID fields for changed records. W
 
 ## Free plan limits
 
-Spark has no billing account and no usage charge. Free quotas still apply; if the project exceeds a Spark quota, Firebase may pause the affected service until the quota period resets. Monitor Firebase Console **Usage and billing**. Cloud Functions are not part of this deployment.
+Spark has no billing account and no usage charge. Free quotas still apply; if the project exceeds a Spark quota, Firebase may pause the affected service until the quota period resets. Monitor Firebase Console **Usage and billing**.

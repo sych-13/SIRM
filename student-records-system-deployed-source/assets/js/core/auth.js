@@ -12,6 +12,7 @@
       try {
         await firebase.signInWithEmailAndPassword(firebase.auth, identifier.trim().toLowerCase(), password);
         const user = await Api.get('/auth/me');
+        try { await Api.post('/auth/login', {}); } catch (_) { /* sign-in must not fail if audit logging is unavailable */ }
         (remember ? localStorage : sessionStorage).setItem(KEY, JSON.stringify(user));
         return user;
       } catch (error) {

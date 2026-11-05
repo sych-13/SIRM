@@ -79,6 +79,9 @@
       const oldMap = new Map((before[key] || []).map((x) => [String(x.id), x]));
       const newMap = new Map((after[key] || []).map((x) => [String(x.id), x]));
       for (const [id, row] of newMap) {
+        if (key === 'logs' && !oldMap.has(id) && before.role?.role !== 'admin') {
+          row.id = Date.now() * 1000 + Math.floor(Math.random() * 1000);
+        }
         const safe = { ...row };
         if (key === 'users') delete safe.password;
         if (key === 'logs') {
@@ -86,7 +89,8 @@
           if (actor && actor.uid) safe.actor_uid = actor.uid;
         }
         if (!oldMap.has(id) || !equal(oldMap.get(id), row)) {
-          batch.set(f.doc(f.db, name, id), safe); changed++;
+          const documentId = key === 'logs' ? String(safe.id) : id;
+          batch.set(f.doc(f.db, name, documentId), safe); changed++;
         }
       }
       for (const id of oldMap.keys()) if (!newMap.has(id)) {
@@ -103,7 +107,9 @@
       }
       const teacherRef = f.doc(f.db, 'teacher_directory', String(u.id));
       if (u.role === 'teacher' && u.status === 'active') {
-        batch.set(teacherRef, { id: u.id, name: u.name, title: u.title || null, role: 'teacher', status: 'active' }); changed++;
+        if (!prev || prev.role !== 'teacher' || prev.status !== 'active' || prev.name !== u.name || prev.title !== u.title) {
+          batch.set(teacherRef, { id: u.id, name: u.name, title: u.title || null, role: 'teacher', status: 'active' }); changed++;
+        }
       } else if (prev && prev.role === 'teacher') {
         batch.delete(teacherRef); changed++;
       }
@@ -134,13 +140,26 @@
     const identity = auth.currentUser;
     if (!identity) fail('Please sign in to continue.', 401);
     const before = await loadState(identity);
+    if (method === 'POST' && path === '/auth/login') {
+      const profile = before.users.find((u) => u.uid === identity.uid);
+      if (profile) {
+        const id = Date.now() * 1000 + Math.floor(Math.random() * 1000);
+        const createdAt = new Date().toISOString().slice(0, 19).replace('T', ' ');
+        await C().setDoc(C().doc(C().db, 'users', String(profile.id)), { last_login_at: createdAt }, { merge: true });
+        await C().setDoc(C().doc(C().db, 'system_logs', String(id)), {
+          id, user_id: profile.id, actor_uid: identity.uid, action: 'login',
+          description: `${profile.name} signed in`, created_at: createdAt,
+        });
+      }
+      return null;
+    }
     if (method === 'POST' && /^\/users\/\d+\/reset-password$/.test(path)) {
       const id = Number(path.split('/')[2]);
       const target = before.users.find((u) => u.id === id);
       if (!before.role || before.role.role !== 'admin') fail('You do not have permission to perform this action.', 403);
       if (!target) fail('User not found.', 404);
       await C().sendPasswordResetEmail(auth, target.email);
-      return await C().sendPasswordResetEmail(auth, target.email).then(() => ({ message: `Password reset email sent to ${target.email}.` }));
+      return { message: `Password reset email sent to ${target.email}.` };
     }
     const seed = { users: before.users, students: before.students, subjects: before.subjects, enrollments: before.enrollments, records: before.records, logs: before.logs };
     const engine = window.SIRMS_createMockServer({ initialDb: seed, fixtures: window.SIRMS_FIXTURES, authUid: identity.uid });
@@ -153,12 +172,26 @@
     const result = engine.handle(method, path, query || {}, payload);
     if (!result.success) fail(result.message, result.status, result.errors);
     const after = engine.getData();
-    if (method === 'POST' && path === '/users') fail('Create the account in Firebase Console, then add the linked Firestore profile. See FIREBASE_SETUP.md.', 403);
-    // Non-admins cannot read audit logs, so preserve that collection when they make changes.
-    if (before.role.role !== 'admin') after.logs = before.logs;
+    let createdAccount;
+    if (method === 'POST' && path === '/users') {
+      const newProfile = after.users.find((u) => !before.users.some((old) => old.id === u.id));
+      if (!newProfile) fail('User profile was not created.', 500);
+      try {
+        const credential = await C().createUserWithEmailAndPassword(C().accountAdminAuth, newProfile.email, newProfile.password);
+        createdAccount = credential.user;
+        newProfile.uid = credential.user.uid;
+      } catch (error) {
+        fail(errorMessage(error), error.code === 'auth/email-already-in-use' ? 409 : 422);
+      }
+    }
     for (const u of after.users) delete u.password;
     try { await saveDiff(before, after); }
-    catch (error) { fail(errorMessage(error), 403); }
+    catch (error) {
+      if (createdAccount) await C().deleteUser(createdAccount).catch(() => {});
+      fail(errorMessage(error), 403);
+    } finally {
+      if (createdAccount) await C().signOut(C().accountAdminAuth).catch(() => {});
+    }
     return result.data;
   }
 

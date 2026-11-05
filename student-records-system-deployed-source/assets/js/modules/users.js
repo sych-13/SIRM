@@ -23,8 +23,8 @@
 
     view.innerHTML = `<div id="usrRoot">
       <div class="d-flex flex-wrap align-items-end justify-content-between gap-3 mb-3">
-        <div><h2 class="h4 fw-bold mb-1">User accounts</h2><p class="text-muted mb-0">Review profiles, assign roles, and control who can sign in.</p></div>
-        <span class="small text-muted">Create accounts in Firebase Console, then add their Firestore profile.</span>
+        <div><h2 class="h4 fw-bold mb-1">User accounts</h2><p class="text-muted mb-0">Create Firebase accounts, assign roles, and control who can sign in.</p></div>
+        <button class="btn btn-primary" id="addUser"><i class="bi bi-person-plus"></i>Create account</button>
       </div>
       <div class="card">
         <div class="toolbar">
@@ -39,10 +39,9 @@
         </table></div>
         <div class="table-foot"><div id="summary">&nbsp;</div><nav><ul class="pagination" id="pager"></ul></nav></div>
       </div></div>
-      ${userModal()}${resetModal()}`;
+      ${userModal()}`;
 
     const formEl = $('#userForm'); const formM = new bootstrap.Modal($('#userModal'));
-    const pwEl = $('#pwForm'); const pwM = new bootstrap.Modal($('#pwModal'));
     const picker = UI.studentPicker('uStudent', {
       onSelect: (s) => { // prefill from the student record when creating a student account
         if (!s || editing || !s.email) return;
@@ -51,7 +50,7 @@
         if (!formEl.elements.username.value) formEl.elements.username.value = s.student_number;
       },
     });
-    let rows = []; let editing = null; let resetting = null; let reqId = 0;
+    let rows = []; let editing = null; let reqId = 0;
 
     async function load() {
       const my = ++reqId;
@@ -79,7 +78,7 @@
         <td class="small text-muted">${u.last_login_at ? UI.timeAgo(u.last_login_at) : 'Never'}</td>
         <td class="text-end text-nowrap">
           <button class="btn btn-sm btn-icon btn-soft" data-act="edit" data-id="${u.id}" title="Edit account" aria-label="Edit ${esc(u.name)}"><i class="bi bi-pencil"></i></button>
-          <button class="btn btn-sm btn-icon btn-soft" data-act="reset" data-id="${u.id}" title="Reset password" aria-label="Reset password of ${esc(u.name)}"><i class="bi bi-key"></i></button>
+          <button class="btn btn-sm btn-icon btn-soft" data-act="reset" data-id="${u.id}" title="Send password reset email" aria-label="Send password reset email to ${esc(u.name)}"><i class="bi bi-key"></i></button>
           ${self ? '' : `<button class="btn btn-sm btn-icon btn-soft ${u.status === 'active' ? 'text-danger' : 'text-success'}" data-act="status" data-id="${u.id}" title="${u.status === 'active' ? 'Deactivate' : 'Activate'}" aria-label="${u.status === 'active' ? 'Deactivate' : 'Activate'} ${esc(u.name)}"><i class="bi ${u.status === 'active' ? 'bi-person-slash' : 'bi-person-check'}"></i></button>`}
         </td></tr>`;
       }).join('');
@@ -91,6 +90,7 @@
     $('#fStatus').addEventListener('change', (e) => { state.status = e.target.value; reload(); });
     const clearFilters = () => { Object.assign(state, { search: '', role: '', status: '' }); ['#fSearch', '#fRole', '#fStatus'].forEach((s) => { $(s).value = ''; }); reload(); };
     $('#fReset').onclick = clearFilters;
+    $('#addUser').onclick = () => openForm();
 
     $('#usrRoot').addEventListener('click', (e) => {
       const b = e.target.closest('[data-act]'); if (!b) return;
@@ -140,7 +140,7 @@
       const btn = $('#saveUser'); UI.setBusy(btn, true);
       try {
         if (editing) await Api.put(`/users/${editing.id}`, data); else await Api.post('/users', data);
-        formM.hide(); UI.toast(editing ? 'Account updated.' : `Account created for ${data.name}. Share the password securely.`); load();
+        formM.hide(); UI.toast(editing ? 'Account updated.' : `Firebase account created for ${data.name}.`); load();
       } catch (err) { if (err.status === 422) UI.showFieldErrors(formEl, err.errors); UI.toast(err.message, 'error'); } finally { UI.setBusy(btn, false); }
     });
 
@@ -149,24 +149,6 @@
       try { await Api.post(`/users/${u.id}/reset-password`, {}); UI.toast(`Password reset email sent to ${u.email}.`); }
       catch (err) { UI.toast(err.message, 'error'); }
     }
-
-    // The legacy modal remains available to existing markup but is not used by Firebase Auth.
-    function openReset(u) {
-      resetting = u; pwEl.reset(); UI.showFieldErrors(pwEl, {}); pwEl.elements.password.type = 'password';
-      $('#pwWho').textContent = `${u.name} (${u.username})`; pwM.show();
-    }
-    $('#genPw2').onclick = () => { pwEl.elements.password.value = genPassword(); pwEl.elements.password.type = 'text'; pwEl.elements.confirm.value = pwEl.elements.password.value; };
-    pwEl.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const { password, confirm } = Object.fromEntries(new FormData(pwEl));
-      const errs = {};
-      if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,72}$/.test(password)) errs.password = PW_HINT;
-      else if (password !== confirm) errs.confirm = 'Passwords do not match.';
-      if (Object.keys(errs).length) { UI.showFieldErrors(pwEl, errs); return; }
-      const btn = $('#savePw'); UI.setBusy(btn, true);
-      try { await Api.post(`/users/${resetting.id}/reset-password`, { password }); pwM.hide(); UI.toast(`Password reset for ${resetting.name}. They are signed out of remembered devices.`); }
-      catch (err) { if (err.status === 422) UI.showFieldErrors(pwEl, err.errors); UI.toast(err.message, 'error'); } finally { UI.setBusy(btn, false); }
-    });
 
     async function toggleStatus(u) {
       const activate = u.status !== 'active';
@@ -177,7 +159,7 @@
     }
 
     await load();
-    return () => UI.disposeModals([formM, pwM]);
+    return () => UI.disposeModals([formM]);
   }
 
   function userModal() {
@@ -195,26 +177,10 @@
         <div class="col-12" id="uTitleBox"><label class="form-label" for="u_title">Title / Department</label><input class="form-control" id="u_title" name="title" maxlength="120" placeholder="e.g. College of Computing"><div class="invalid-feedback" data-for="title"></div></div>
         <div class="col-12" id="uPwBox"><label class="form-label" for="u_password">Initial password <span class="req">*</span></label>
           <div class="input-group"><input class="form-control" id="u_password" name="password" type="password" autocomplete="new-password"><button type="button" class="btn btn-light" id="genPw"><i class="bi bi-magic"></i>Generate</button><div class="invalid-feedback" data-for="password"></div></div>
-          <div class="form-text">${PW_HINT} Stored only as a secure hash.</div></div>
+          <div class="form-text">${PW_HINT} Firebase Authentication stores the password; it is never saved in Firestore.</div></div>
       </div></div>
       <div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-primary" id="saveUser">Save</button></div>
       </form></div></div></div>`;
   }
-  function resetModal() {
-    return `<div class="modal fade" id="pwModal" tabindex="-1" aria-labelledby="pwModalTitle"><div class="modal-dialog"><div class="modal-content">
-      <form id="pwForm" novalidate class="d-contents" autocomplete="off">
-      <div class="modal-header"><h2 class="modal-title" id="pwModalTitle">Reset password</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
-      <div class="modal-body">
-        <p class="text-muted">Set a new password for <strong id="pwWho"></strong>. Their remembered devices will be signed out.</p>
-        <label class="form-label" for="p_password">New password <span class="req">*</span></label>
-        <div class="input-group mb-1"><input class="form-control" id="p_password" name="password" type="password" autocomplete="new-password"><button type="button" class="btn btn-light" id="genPw2"><i class="bi bi-magic"></i>Generate</button><div class="invalid-feedback" data-for="password"></div></div>
-        <div class="form-text mb-3">${PW_HINT}</div>
-        <label class="form-label" for="p_confirm">Confirm password <span class="req">*</span></label>
-        <input class="form-control" id="p_confirm" name="confirm" type="password" autocomplete="new-password"><div class="invalid-feedback" data-for="confirm"></div>
-      </div>
-      <div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-primary" id="savePw"><i class="bi bi-key"></i>Reset password</button></div>
-      </form></div></div></div>`;
-  }
-
   Router.register('/users', { title: 'User Management', section: 'Administration', roles: ['admin'], render });
 })();

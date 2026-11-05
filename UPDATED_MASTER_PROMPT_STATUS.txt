@@ -1,0 +1,60 @@
+PROJECT: STUDENT INFORMATION AND RECORDS MANAGEMENT SYSTEM (SIRMS)
+PROGRESS-AWARE MASTER PROMPT
+
+Act as a senior full-stack web developer and UI/UX designer. Continue the existing Student Information and Records Management System in the current repository. First inspect the existing implementation and this progress report. Preserve completed work and the live deployment; do not rebuild the project from scratch.
+
+PROJECT LOCATION AND DEPLOYMENT
+- Local repository: C:\Users\icaru\OneDrive\Documents\ChatGPT\Student Information and Records Management System 2
+- App source folder: student-records-system-deployed-source\
+- GitHub repository: https://github.com/sych-13/SIRM
+- Current branch: main
+- Previous pushed implementation: commit 79665c1 (Spark Firestore client integration); check Git history for newer changes.
+- Firebase project: sirm-cf763
+- Live Hosting URL: https://sirm-cf763.web.app
+
+ARCHITECTURE AND OWNER'S GOAL
+Use Firebase Authentication, Cloud Firestore, Firestore Security Rules, and Firebase Hosting on the Spark plan as the system backend, database, and web host. The owner does not want PHP, MySQL, XAMPP, or Netlify. The owner wants all system features to work against Firebase, with the code kept in and pushed to https://github.com/sych-13/SIRM. Treat this as authoritative. Never add Cloud Functions, link a billing account, or upgrade the Firebase plan unless the owner explicitly changes the plan.
+
+CURRENTLY IMPLEMENTED
+- Responsive HTML/CSS/JavaScript interface with role-specific navigation and admin, teacher, and student dashboards.
+- Firebase Authentication email/password sign-in, remember-me persistence, sign-out, and role-based redirect.
+- Direct Firestore client adapter in assets/js/data/firebase-api.js, reusing existing validation, filtering, and report logic from assets/js/data/mock-server.js.
+- Firestore Security Rules for admin access, teacher-assigned records, and each student's own records. Rules are deployed to the Firebase project.
+- Firebase web configuration and Firebase Hosting configuration are in the app source. Firebase Hosting is live at the URL above.
+- Admin dashboard statistics and the student directory, enrollment, subjects, academic records/grades, search, reports, and student portal are implemented in separate JavaScript modules.
+- Student profiles support optional compressed profile pictures. Existing UI includes validation, search/filtering, pagination, confirmation dialogs, loading states, and notifications.
+- Reports include student master list, enrollment, academic records, and grade reports; print, PDF, and CSV export are implemented in the interface.
+- User list/profile updates/status controls, Firebase Auth account creation from the admin UI using a secondary Firebase Auth instance, and password reset email flow exist. Firestore role/profile writes remain protected by Security Rules.
+- The first administrator's Firebase Auth account and matching Firestore `users/1` and `user_roles/{uid}` records have been created. Do not repeat or overwrite that bootstrap.
+- Firebase setup instructions are in student-records-system-deployed-source/FIREBASE_SETUP.md.
+- The current app and Firestore Rules deployment is live. The project uses Firebase Hosting and Spark-compatible client services only.
+
+PARTIALLY COMPLETE / NEEDS FOLLOW-UP
+- User onboarding from the admin UI creates the Firebase Auth account through a secondary Auth instance and writes the linked profile and role documents. Review its cleanup behavior on Firestore failure and role/profile persistence. Email changes still need to be made in Firebase Authentication before updating the Firestore profile.
+- System activity logging writes successful sign-ins and authenticated actions with actor UIDs. Review uniqueness and Rules behavior for teacher/student logs. Failed sign-ins are not recorded yet; any design must prevent unauthenticated log spam.
+- Existing demo fixtures are not automatically imported into Firestore. No real student, enrollment, subject, or grade dataset has been migrated. Do not seed fake demo records into production. If migration is requested, prepare and document a safe import plan.
+- Teacher/student access depends on correct `owner_uid` and `teacher_uids` fields in Firestore records. Make sure account/profile assignment and data creation/import maintain these fields consistently.
+- The user interface and code are deployed, but do not claim every workflow has been verified in a live browser unless it has actually been checked.
+
+REMAINING DEPLOYMENT / QUALITY WORK
+- Code is pushed to GitHub and Firebase Hosting has been deployed with Firebase CLI. Automatic deployment from every GitHub push is not configured. Keep GitHub as the canonical source and push authorized code changes to `sych-13/SIRM`; keep the Firebase Hosting deployment current.
+- No comprehensive end-to-end/manual workflow verification report has been recorded. Do not claim a feature is verified without actually checking it.
+
+DATA MODEL AND SECURITY CONTEXT
+Firestore collections include `users`, `user_roles`, `teacher_directory`, `students`, `subjects`, `enrollments`, `academic_records`, and `system_logs`. `user_roles/{uid}` is used by Rules to determine active role. Teacher queries require `teacher_uids` to contain the teacher Auth UID. Student queries require `owner_uid` to equal the student's Auth UID. Never store passwords in Firestore. Do not expose student data or grant broad collection access to make screens easier to implement. Production student and academic records must come from Firestore, not localStorage or demo fixtures; fixtures may provide program/term metadata only.
+
+REMAINING WORK PRIORITIES
+1. Review the current Firebase adapter and Firestore Rules for correctness and close integration gaps without weakening role-based access.
+2. Review the Spark-compatible in-app user onboarding flow and keep setup documentation aligned with it.
+3. Review authenticated activity logging and consider a safe failed-sign-in event design.
+4. Review record assignment UID propagation, especially when linking student Auth accounts, assigning teachers to subjects, and importing existing records.
+5. If requested, configure GitHub Actions for automatic Firebase Hosting and Rules deployment on pushes to `main`.
+6. Keep setup documentation current and clearly state the remaining steps required before using real student data.
+
+WORKING RULES
+- Work in the existing source tree and make focused changes; do not remove or replace functioning modules without a clear reason.
+- Keep the project on Firebase Spark and $0 billing. Never deploy Cloud Functions.
+- Do not commit passwords, service-account keys, or real student records.
+- Distinguish implemented code from workflows verified in the deployed app.
+- Explain changes, why they were needed, and how they were checked. Do not claim testing or verification that did not occur.
+- Preserve the GitHub repository as the canonical source. Push changes to `sych-13/SIRM` only when explicitly requested or already authorized in the current session.

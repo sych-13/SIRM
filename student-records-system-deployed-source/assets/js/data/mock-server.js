@@ -1,11 +1,8 @@
 /* =========================================================
-   MOCK SERVER — in-browser stand-in for the PHP REST API.
+   SIRMS data engine — shared route validation and report logic.
    ---------------------------------------------------------
-   Implements the same routes, validation rules, RBAC checks
-   and JSON envelope as backend/ (see docs/API.md), so every
-   screen works without a PHP host. State lives in localStorage.
-   Remove this file + fixtures.js once CONFIG.USE_MOCK_API is
-   false in production. Keep it in sync with backend/controllers.
+   The Firebase adapter supplies Firestore records and authenticated
+   identity; this engine applies existing route validation and shaping.
    ========================================================= */
 (function (root, factory) {
   if (typeof module !== 'undefined' && module.exports) module.exports = factory;
@@ -107,7 +104,7 @@
   const PASSWORD_RX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,72}$/;
   const PASSWORD_MSG = 'Use 8+ characters with upper and lower case letters and a number.';
 
-  // ---------- validation (mirrors backend/controllers/StudentController.php) ----------
+  // ---------- student record validation ----------
   const STUDENT_FIELDS = ['student_number', 'first_name', 'middle_name', 'last_name', 'date_of_birth', 'gender', 'address', 'contact_number', 'email', 'guardian_name', 'guardian_contact', 'profile_picture'];
   function validateStudent(input, ignoreId) {
     const d = trimAll(input, STUDENT_FIELDS);
@@ -527,7 +524,7 @@
     return ok(paginate(rows, q));
   });
 
-  // REPORTS (Module 7) — same column definitions as backend/controllers/ReportController.php
+  // REPORTS (Module 7)
   const COLS = {
     'master-list': [['student_number', 'Student No.'], ['last_name', 'Last Name'], ['first_name', 'First Name'], ['middle_name', 'Middle Name'], ['gender', 'Gender'], ['date_of_birth', 'Birth Date'], ['program', 'Program'], ['year_level', 'Year'], ['status', 'Status'], ['email', 'Email'], ['contact_number', 'Contact']],
     enrollment: [['student_number', 'Student No.'], ['student_name', 'Student Name'], ['academic_year', 'Academic Year'], ['semester', 'Semester'], ['program', 'Program'], ['year_level', 'Year'], ['enrollment_date', 'Enrollment Date'], ['status', 'Status']],
