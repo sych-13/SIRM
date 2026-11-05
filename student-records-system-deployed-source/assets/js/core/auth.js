@@ -20,10 +20,18 @@
       await firebase.setPersistence(firebase.auth, remember ? firebase.browserLocalPersistence : firebase.browserSessionPersistence);
       try {
         await firebase.signInWithEmailAndPassword(firebase.auth, identifier.trim().toLowerCase(), password);
+        const signedInUser = firebase.auth.currentUser;
+        let verificationSent = false;
+        if (signedInUser && !signedInUser.emailVerified) {
+          try {
+            await firebase.sendEmailVerification(signedInUser);
+            verificationSent = true;
+          } catch (_) { /* Do not block sign-in if email delivery is temporarily unavailable. */ }
+        }
         const user = await Api.get('/auth/me');
         try { await Api.post('/auth/login', {}); } catch (_) { /* sign-in must not fail if audit logging is unavailable */ }
         (remember ? localStorage : sessionStorage).setItem(KEY, JSON.stringify(user));
-        return user;
+        return { ...user, email_verified: !!signedInUser?.emailVerified, verification_sent: verificationSent };
       } catch (error) {
         await firebase.signOut(firebase.auth).catch(() => {});
         if (AUTH_ERRORS[error.code]) throw new ApiError(AUTH_ERRORS[error.code], 401);

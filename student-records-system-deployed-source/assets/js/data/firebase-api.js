@@ -221,6 +221,7 @@
     if (method === 'GET') return result.data;
     const after = engine.getData();
     let createdAccount;
+    let verificationSent = false;
     if (method === 'POST' && path === '/users') {
       const newProfile = after.users.find((u) => !before.users.some((old) => old.id === u.id));
       if (!newProfile) fail('User profile was not created.', 500);
@@ -228,6 +229,7 @@
         const credential = await C().createUserWithEmailAndPassword(C().accountAdminAuth, newProfile.email, newProfile.password);
         createdAccount = credential.user;
         newProfile.uid = credential.user.uid;
+        try { await C().sendEmailVerification(createdAccount); verificationSent = true; } catch (_) { /* Account creation remains usable if mail delivery is temporarily unavailable. */ }
       } catch (error) {
         fail(errorMessage(error), error.code === 'auth/email-already-in-use' ? 409 : 422);
       }
@@ -240,6 +242,7 @@
     } finally {
       if (createdAccount) await C().signOut(C().accountAdminAuth).catch(() => {});
     }
+    if (createdAccount && result.data && typeof result.data === 'object') result.data.verification_sent = verificationSent;
     return result.data;
   }
 

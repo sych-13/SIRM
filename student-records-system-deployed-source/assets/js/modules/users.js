@@ -145,8 +145,12 @@
       if (editing) delete data.password;
       const btn = $('#saveUser'); UI.setBusy(btn, true);
       try {
-        if (editing) await Api.put(`/users/${editing.id}`, data); else await Api.post('/users', data);
-        formM.hide(); UI.toast(editing ? 'Account updated.' : `Firebase account created for ${data.name}.`); load();
+        const saved = editing ? await Api.put(`/users/${editing.id}`, data) : await Api.post('/users', data);
+        formM.hide();
+        UI.toast(editing ? 'Account updated.' : (saved?.verification_sent
+          ? `Firebase account created for ${data.name}. Verification email sent to ${data.email}.`
+          : `Firebase account created for ${data.name}, but the verification email could not be sent. The user can try signing in again later.`));
+        load();
       } catch (err) { if (err.status === 422) UI.showFieldErrors(formEl, err.errors); UI.toast(err.message, 'error'); } finally { UI.setBusy(btn, false); }
     });
 

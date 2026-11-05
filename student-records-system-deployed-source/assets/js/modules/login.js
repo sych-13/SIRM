@@ -40,6 +40,7 @@
     btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>Signing in…';
     try {
       const user = await Auth.login(form.identifier.value.trim(), form.password.value, form.remember.checked);
+      if (user.verification_sent) sessionStorage.setItem('sirms_verification_notice', `A verification email was sent to ${form.identifier.value.trim()}. Please open it and click the verification link.`);
       location.replace('app.html' + Auth.homeFor(user.role));
     } catch (err) {
       showAlert(err.message);

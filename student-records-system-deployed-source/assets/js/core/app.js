@@ -73,6 +73,11 @@
     if (!user) { location.replace('index.html?expired=1'); return; }
     renderSidebar(user);
     wireTopbar(user);
+    const verificationNotice = sessionStorage.getItem('sirms_verification_notice');
+    if (verificationNotice) {
+      sessionStorage.removeItem('sirms_verification_notice');
+      setTimeout(() => UI.toast(verificationNotice, 'info'), 250);
+    }
     UI.$('#roleBadge').textContent = ROLE_LABEL[user.role];
     window.addEventListener('hashchange', () => Router.resolve());
     Router.resolve();
