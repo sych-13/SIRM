@@ -39,6 +39,14 @@
     grade(g) { if (g == null) return '<span class="text-muted">—</span>'; return `<span class="grade ${g <= 3 ? 'grade-good' : 'grade-fail'}">${Number(g).toFixed(2)}</span>`; },
 
     loader(label = 'Loading…') { return `<div class="page-loader"><div class="text-center"><div class="spinner-border text-primary mb-2" role="status"></div><div class="small">${esc(label)}</div></div></div>`; },
+    pageSkeleton() {
+      return `<section class="page-skeleton" aria-busy="true" aria-label="Loading page">
+        <span class="visually-hidden">Loading page content…</span>
+        <div class="skeleton skeleton-heading mb-2"></div><div class="skeleton skeleton-subheading mb-4"></div>
+        <div class="row g-3 mb-4">${Array.from({ length: 4 }, () => `<div class="col-6 col-xl-3"><div class="card skeleton-stat"><div class="skeleton skeleton-icon"></div><div class="flex-grow-1"><div class="skeleton skeleton-label mb-2"></div><div class="skeleton skeleton-value mb-2"></div><div class="skeleton skeleton-label"></div></div></div></div>`).join('')}</div>
+        <div class="card skeleton-panel"><div class="toolbar"><div class="skeleton skeleton-search"></div><div class="skeleton skeleton-filter"></div><div class="skeleton skeleton-filter"></div></div><div class="table-wrap"><table class="table"><thead><tr>${Array.from({ length: 6 }, () => '<th><div class="skeleton skeleton-cell"></div></th>').join('')}</tr></thead><tbody>${Array.from({ length: 5 }, () => `<tr>${Array.from({ length: 6 }, () => '<td><div class="skeleton skeleton-cell"></div></td>').join('')}</tr>`).join('')}</tbody></table></div></div>
+      </section>`;
+    },
     skeletonRows(cols, rows = 6) { return Array.from({ length: rows }, () => `<tr>${Array.from({ length: cols }, () => '<td><div class="skeleton" style="height:14px"></div></td>').join('')}</tr>`).join(''); },
     empty({ icon = 'bi-inbox', title = 'Nothing here yet', text = '', action = '' } = {}) {
       return `<div class="empty-state"><div class="icon"><i class="bi ${icon}"></i></div><h3>${esc(title)}</h3>${text ? `<p class="mb-3">${esc(text)}</p>` : ''}${action}</div>`;

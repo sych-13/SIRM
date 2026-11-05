@@ -43,9 +43,12 @@
       UI.$$('.sidebar-nav a').forEach((a) => a.classList.toggle('active', a.getAttribute('href').split('?')[0] === `#${path}`));
       document.querySelector('.app').classList.remove('nav-open');
       window.scrollTo(0, 0);
-      container.innerHTML = UI.loader();
+      container.classList.remove('page-enter');
+      container.innerHTML = UI.pageSkeleton();
       const render = typeof def.render === 'function' ? def.render : def.render[user.role];
-      currentCleanup = await render(container, { query, user });
+      const page = render(container, { query, user });
+      container.classList.add('page-enter');
+      currentCleanup = await page;
     },
   };
 })();
