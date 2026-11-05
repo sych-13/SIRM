@@ -88,8 +88,8 @@ a { color: var(--blue-600); }
 .auth-brand-head { display: flex; align-items: center; gap: 1rem; }
 .auth-panel { display: flex; align-items: center; justify-content: center; padding: 2.5rem 1.5rem; background: #fff; }
 .auth-card { width: 100%; max-width: 410px; }
-html[data-theme="light"] .auth-panel { background: linear-gradient(145deg, #f6f9fe, #fff 55%); }
-html[data-theme="light"] .auth-card { padding: 2rem; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); box-shadow: var(--shadow); }
+html[data-theme="light"] .auth-panel { background: linear-gradient(145deg, #edf4ff, #fff 55%); }
+html[data-theme="light"] .auth-card { padding: 2rem; background: var(--surface); border: 2px solid #bfd0e8; border-radius: var(--radius-lg); box-shadow: 0 16px 36px -18px rgba(27, 67, 125, .34); }
 .demo-accounts button { text-align: left; border: 1px dashed #cbd8ee; background: var(--blue-50); border-radius: 10px; padding: .55rem .75rem; font-size: .8rem; width: 100%; color: var(--ink-600); }
 .demo-accounts button:hover { border-color: var(--blue-500); background: var(--blue-100); }
 .demo-accounts strong { color: var(--ink-900); display: block; font-size: .82rem; }
@@ -145,6 +145,7 @@ html[data-theme="light"] .auth-card { padding: 2rem; background: var(--surface);
 
 /* ---------- Cards ---------- */
 .card { border: 1px solid var(--line); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); background: var(--surface); }
+html[data-theme="light"] .card { border-color: #c7d5e8; box-shadow: 0 5px 18px -14px rgba(27, 67, 125, .28); }
 .card-header { background: transparent; border-bottom: 1px solid var(--line); padding: 1rem 1.25rem; display: flex; align-items: center; justify-content: space-between; gap: .75rem; }
 .card-header h2, .card-header h3 { font-size: 1rem; font-weight: 700; margin: 0; }
 .card-body { padding: 1.25rem; }
