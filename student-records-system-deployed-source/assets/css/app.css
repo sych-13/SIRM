@@ -311,7 +311,7 @@ tr.is-saved td { background: var(--success-bg) !important; transition: backgroun
 .theme-toggle { flex: none; width: auto; min-width: 38px; border: 1px solid var(--line); background: var(--surface); color: var(--ink-600); }
 .theme-toggle:hover { color: var(--blue-600); border-color: var(--blue-500); background: var(--blue-50); }
 .theme-toggle .theme-toggle-label { font-size: .78rem; line-height: 1; white-space: nowrap; }
-.auth-brand .auth-theme-toggle { margin-left: auto; color: #fff; background: rgba(255, 255, 255, .1); border-color: rgba(255, 255, 255, .22); }
+.auth-brand .auth-theme-toggle { color: #fff; background: rgba(255, 255, 255, .1); border-color: rgba(255, 255, 255, .22); }
 .auth-brand .auth-theme-toggle:hover { color: #fff; background: rgba(255, 255, 255, .18); border-color: rgba(255, 255, 255, .4); }
 
 .content.page-enter > * { animation: page-enter .28s ease both; }
