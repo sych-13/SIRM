@@ -7,7 +7,7 @@
    this file is no longer loaded: set CONFIG.USE_MOCK_API = false
    in core/config.js and the same screens read real data.
    ========================================================= */
-(function () {
+(function (root) {
   'use strict';
 
   const PROGRAMS = [
@@ -76,12 +76,12 @@
   });
 
   const users = [
-    { id: 1, name: 'Elena Marasigan', email: 'admin@sirms.edu', username: 'admin', role: 'admin', status: 'active', password: 'Admin@123', title: 'University Registrar' },
-    { id: 2, name: 'Prof. Ricardo Valencia', email: 'r.valencia@sirms.edu', username: 'rvalencia', role: 'teacher', status: 'active', password: 'Teacher@123', title: 'College of Computing' },
-    { id: 3, name: 'Dr. Liza Manansala', email: 'l.manansala@sirms.edu', username: 'lmanansala', role: 'teacher', status: 'active', password: 'Teacher@123', title: 'College of Business' },
-    { id: 4, name: 'Prof. Arnel Bautista', email: 'a.bautista@sirms.edu', username: 'abautista', role: 'teacher', status: 'active', password: 'Teacher@123', title: 'College of Education' },
-    { id: 5, name: 'Prof. Grace Sy', email: 'g.sy@sirms.edu', username: 'gsy', role: 'teacher', status: 'inactive', password: 'Teacher@123', title: 'College of Nursing' },
-    { id: 6, name: 'Andrea Dela Cruz', email: students[0].email, username: students[0].student_number, role: 'student', status: 'active', password: 'Student@123', student_id: 1 },
+    { id: 1, name: 'Elena Marasigan', email: 'admin@sirms.edu', username: 'admin', role: 'admin', status: 'active', title: 'University Registrar' },
+    { id: 2, name: 'Prof. Ricardo Valencia', email: 'r.valencia@sirms.edu', username: 'rvalencia', role: 'teacher', status: 'active', title: 'College of Computing' },
+    { id: 3, name: 'Dr. Liza Manansala', email: 'l.manansala@sirms.edu', username: 'lmanansala', role: 'teacher', status: 'active', title: 'College of Business' },
+    { id: 4, name: 'Prof. Arnel Bautista', email: 'a.bautista@sirms.edu', username: 'abautista', role: 'teacher', status: 'active', title: 'College of Education' },
+    { id: 5, name: 'Prof. Grace Sy', email: 'g.sy@sirms.edu', username: 'gsy', role: 'teacher', status: 'inactive', title: 'College of Nursing' },
+    { id: 6, name: 'Andrea Dela Cruz', email: students[0].email, username: students[0].student_number, role: 'student', status: 'active', student_id: 1 },
   ];
 
   const subjects = [
@@ -154,5 +154,7 @@
     { id: 8, user_id: 1, action: 'report', description: 'Generated Enrollment Report — AY 2025-2026, 1st Semester', created_at: daysAgo(5, 13) },
   ];
 
-  window.SIRMS_FIXTURES = { PROGRAMS, CURRENT, users, students, subjects, enrollments, records, logs };
-})();
+  const fixtures = { PROGRAMS, CURRENT, users, students, subjects, enrollments, records, logs };
+  root.SIRMS_FIXTURES = fixtures;
+  if (typeof module !== 'undefined' && module.exports) module.exports = fixtures;
+})(typeof globalThis !== 'undefined' ? globalThis : this);

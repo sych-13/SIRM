@@ -1,23 +1,16 @@
-/* =========================================================
-   App configuration — the ONLY place the frontend learns
-   where the backend lives. Never put DB credentials or
-   secret keys here; those stay in backend/config on the PHP host.
-   ========================================================= */
+/* Public Firebase web config and Cloud Functions API endpoint. */
 window.CONFIG = Object.freeze({
   APP_NAME: 'SIRMS',
   SCHOOL_NAME: 'Student Information & Records Management System',
 
-  // Base URL of the PHP REST API (backend/api). Absolute or relative:
-  //   XAMPP:          http://localhost/sirms/backend/api
-  //   Netlify proxy:  /api   (recommended in production; see docs/DEPLOYMENT.md)
-  //   Direct:         https://api.your-school.edu/api
-  API_BASE_URL: 'http://localhost/sirms/backend/api',
-
-  // true  → screens run against js/data/fixtures.js through js/data/mock-server.js
-  // false → every request goes to API_BASE_URL with the PHP session cookie
-  // The PHP API currently serves auth + /meta (Milestone 2). Dashboards and
-  // Student Management arrive in Milestone 3, so the mock stays on until then.
-  USE_MOCK_API: true,
-
-  MOCK_LATENCY_MS: [180, 420],
+  API_BASE_URL: 'https://asia-southeast1-sirm-cf763.cloudfunctions.net/api',
+  FIREBASE_CONFIG: Object.freeze({
+    apiKey: 'AIzaSyDv0LVsT2hb7O_uM8sNQTFo6pqJuWWXeSA',
+    authDomain: 'sirm-cf763.firebaseapp.com',
+    projectId: 'sirm-cf763',
+    storageBucket: 'sirm-cf763.firebasestorage.app',
+    messagingSenderId: '841333693928',
+    appId: '1:841333693928:web:19dc061193f84c47f6985d',
+    measurementId: 'G-2XX12S3V3N',
+  }),
 });

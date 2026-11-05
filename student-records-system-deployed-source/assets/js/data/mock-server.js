@@ -7,11 +7,16 @@
    Remove this file + fixtures.js once CONFIG.USE_MOCK_API is
    false in production. Keep it in sync with backend/controllers.
    ========================================================= */
-(function () {
+(function (root, factory) {
+  if (typeof module !== 'undefined' && module.exports) module.exports = factory;
+  else root.SIRMS_createMockServer = factory;
+})(typeof globalThis !== 'undefined' ? globalThis : this, function createMockServer(options = {}) {
   'use strict';
   const DB_KEY = 'sirms_mock_db_v2';
   const SESSION_KEY = 'sirms_mock_session';
-  const F = window.SIRMS_FIXTURES;
+  const F = options.fixtures || (typeof window !== 'undefined' ? window.SIRMS_FIXTURES : require('./fixtures.js'));
+  const browser = typeof window !== 'undefined';
+  const clone = (value) => JSON.parse(JSON.stringify(value));
   const SEMESTERS = ['1st Semester', '2nd Semester', 'Summer'];
   const ENROLL_STATUSES = ['Enrolled', 'Pending', 'Dropped', 'Completed'];
   const GRADES = [1.0, 1.25, 1.5, 1.75, 2.0, 2.25, 2.5, 2.75, 3.0, 5.0];
@@ -19,22 +24,33 @@
   const LOG_ACTIONS = ['login', 'login_failed', 'logout', 'create', 'update', 'delete', 'report'];
 
   // ---------- storage ----------
-  let db = load();
+  let db = options.initialDb ? clone(options.initialDb) : load();
   function load() {
-    try { const raw = localStorage.getItem(DB_KEY); if (raw) return JSON.parse(raw); } catch (_) { /* reseed */ }
-    localStorage.removeItem('sirms_mock_db_v1');
-    const seeded = JSON.parse(JSON.stringify({ users: F.users, students: F.students, subjects: F.subjects, enrollments: F.enrollments, records: F.records, logs: F.logs }));
-    localStorage.setItem(DB_KEY, JSON.stringify(seeded));
+    if (browser) {
+      try { const raw = localStorage.getItem(DB_KEY); if (raw) return JSON.parse(raw); } catch (_) { /* reseed */ }
+      localStorage.removeItem('sirms_mock_db_v1');
+    }
+    const seeded = clone({ users: F.users, students: F.students, subjects: F.subjects, enrollments: F.enrollments, records: F.records, logs: F.logs });
+    if (browser) localStorage.setItem(DB_KEY, JSON.stringify(seeded));
     return seeded;
   }
-  const save = () => localStorage.setItem(DB_KEY, JSON.stringify(db));
+  const save = () => {
+    if (typeof options.onSave === 'function') options.onSave(clone(db));
+    else if (browser) localStorage.setItem(DB_KEY, JSON.stringify(db));
+  };
   const nextId = (rows) => rows.reduce((m, r) => Math.max(m, r.id), 0) + 1;
   const now = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 19).replace('T', ' '); };
   const today = () => now().slice(0, 10);
 
   // ---------- session ----------
-  const getSession = () => { try { return JSON.parse(sessionStorage.getItem(SESSION_KEY) || localStorage.getItem(SESSION_KEY)); } catch (_) { return null; } };
-  const currentUser = () => { const s = getSession(); return s ? db.users.find((u) => u.id === s.user_id && u.status === 'active') : null; };
+  const getSession = () => {
+    if (!browser) return null;
+    try { return JSON.parse(sessionStorage.getItem(SESSION_KEY) || localStorage.getItem(SESSION_KEY)); } catch (_) { return null; }
+  };
+  const currentUser = () => {
+    if (options.authUid) return db.users.find((u) => u.uid === options.authUid && u.status === 'active') || null;
+    const s = getSession(); return s ? db.users.find((u) => u.id === s.user_id && u.status === 'active') : null;
+  };
   const publicUser = (u) => ({ id: u.id, name: u.name, email: u.email, username: u.username, role: u.role, title: u.title || null, student_id: u.student_id || null });
   const csrf = () => Math.random().toString(36).slice(2);
 
@@ -196,6 +212,8 @@
       else if (db.users.some((u) => u.student_id === d.student_id && (!existing || u.id !== existing.id))) e.student_id = 'This student already has an account.';
     }
     if (!existing) { if (!d.password) e.password = 'This field is required.'; else if (!PASSWORD_RX.test(d.password)) e.password = PASSWORD_MSG; }
+    if (d.email) d.email = d.email.toLowerCase();
+    if (d.username) d.username = d.username.toLowerCase();
     return { data: d, errors: e };
   }
   const userRow = (u) => { const s = u.student_id ? studentById(u.student_id) : null; return { ...publicUser(u), status: u.status, last_login_at: u.last_login_at || null, created_at: u.created_at || null, student_number: s ? s.student_number : null }; };
@@ -214,12 +232,12 @@
     const user = db.users.find((u) => u.email.toLowerCase() === id || u.username.toLowerCase() === id);
     if (!user || user.password !== body.password) { log(user, 'login_failed', `Failed sign-in attempt for "${id.slice(0, 60)}"`); save(); return fail(401, 'Invalid email/username or password.'); }
     if (user.status !== 'active') return fail(403, 'This account is deactivated. Please contact the registrar.');
-    (body.remember ? localStorage : sessionStorage).setItem(SESSION_KEY, JSON.stringify({ user_id: user.id }));
+    if (browser) (body.remember ? localStorage : sessionStorage).setItem(SESSION_KEY, JSON.stringify({ user_id: user.id }));
     user.last_login_at = now();
     log(user, 'login', `${user.name} signed in`); save();
     return ok({ user: publicUser(user) }, { csrf_token: csrf() });
   });
-  route('POST', '/auth/logout', [], (u) => { if (u) { log(u, 'logout', `${u.name} signed out`); save(); } sessionStorage.removeItem(SESSION_KEY); localStorage.removeItem(SESSION_KEY); return ok(null); });
+  route('POST', '/auth/logout', [], (u) => { if (u) { log(u, 'logout', `${u.name} signed out`); save(); } if (browser) { sessionStorage.removeItem(SESSION_KEY); localStorage.removeItem(SESSION_KEY); } return ok(null); });
   route('GET', '/auth/me', [], (u) => ok(publicUser(u), { csrf_token: csrf() }));
 
   // META
@@ -645,7 +663,7 @@
   });
 
   // ---------- dispatcher ----------
-  window.MockServer = {
+  const server = {
     handle(method, path, query, body) {
       const clean = path.split('?')[0];
       for (const r of routes) {
@@ -661,6 +679,9 @@
       }
       return fail(404, `Endpoint ${method} ${clean} was not found.`);
     },
-    reset() { localStorage.removeItem(DB_KEY); db = load(); },
+    reset() { if (browser) localStorage.removeItem(DB_KEY); db = load(); },
+    getData() { return clone(db); },
   };
-})();
+  if (browser && !options.initialDb) window.MockServer = server;
+  return server;
+});

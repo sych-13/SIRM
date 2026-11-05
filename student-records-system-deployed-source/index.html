@@ -76,23 +76,13 @@
           <button class="btn btn-primary w-100 py-2" type="submit" id="loginBtn"><i class="bi bi-box-arrow-in-right"></i>Sign in</button>
         </form>
 
-        <div class="demo-accounts mt-4">
-          <p class="small-caps mb-2">Demo accounts: click to fill in</p>
-          <div class="row g-2">
-            <div class="col-4"><button type="button" data-id="admin@sirms.edu" data-pw="Admin@123"><strong>Admin</strong>Registrar</button></div>
-            <div class="col-4"><button type="button" data-id="r.valencia@sirms.edu" data-pw="Teacher@123"><strong>Teacher</strong>Faculty</button></div>
-            <div class="col-4"><button type="button" data-id="2023-01001" data-pw="Student@123"><strong>Student</strong>Andrea</button></div>
-          </div>
-        </div>
       </div>
     </section>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="assets/js/core/config.js"></script>
-  <!-- Mock layer (Milestone 1). Remove both lines when CONFIG.USE_MOCK_API = false -->
-  <script src="assets/js/data/fixtures.js"></script>
-  <script src="assets/js/data/mock-server.js"></script>
+  <script type="module" src="assets/js/core/firebase-init.js"></script>
   <script src="assets/js/core/api.js"></script>
   <script src="assets/js/core/auth.js"></script>
   <script src="assets/js/modules/login.js"></script>
