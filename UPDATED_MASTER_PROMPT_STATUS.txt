@@ -8,7 +8,7 @@ PROJECT LOCATION AND DEPLOYMENT
 - App source folder: student-records-system-deployed-source\
 - GitHub repository: https://github.com/sych-13/SIRM
 - Current branch: main
-- Previous pushed implementation: commit 79665c1 (Spark Firestore client integration); check Git history for newer changes.
+- Latest pushed implementation: commit 72154a4 (Firebase record access assignment fixes).
 - Firebase project: sirm-cf763
 - Live Hosting URL: https://sirm-cf763.web.app
 
