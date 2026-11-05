@@ -1,4 +1,15 @@
 {
   "functions": [{ "source": "functions", "codebase": "default" }],
-  "firestore": { "rules": "firestore.rules" }
+  "firestore": { "rules": "firestore.rules" },
+  "hosting": {
+    "public": ".",
+    "ignore": [
+      "firebase.json",
+      "firestore.rules",
+      "functions/**",
+      "**/.*",
+      "**/node_modules/**",
+      "firebase-debug.log"
+    ]
+  }
 }

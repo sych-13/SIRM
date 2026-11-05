@@ -1,5 +1,4 @@
 const { onRequest } = require('firebase-functions/v2/https');
-const { defineSecret } = require('firebase-functions/params');
 const { initializeApp } = require('firebase-admin/app');
 const { getAuth } = require('firebase-admin/auth');
 const { getFirestore } = require('firebase-admin/firestore');
@@ -8,7 +7,6 @@ const fixtures = require('../assets/js/data/fixtures.js');
 
 initializeApp();
 const db = getFirestore();
-const bootstrapSecret = defineSecret('SIRMS_BOOTSTRAP_SECRET');
 const COLLECTIONS = {
   users: 'users', students: 'students', subjects: 'subjects',
   enrollments: 'enrollments', records: 'academic_records', logs: 'system_logs',
@@ -25,6 +23,7 @@ function setCors(req, res) {
     'http://localhost:5500', 'http://127.0.0.1:5500',
     'http://localhost:8080', 'http://127.0.0.1:8080',
     'https://student-records-system.netlify.app',
+    'https://sirm-cf763.web.app', 'https://sirm-cf763.firebaseapp.com',
   ]);
   if (origin && (allowed.has(origin) || /^https:\/\/[a-z0-9-]+--[a-z0-9-]+\.netlify\.app$/i.test(origin))) {
     res.set('Access-Control-Allow-Origin', origin);
@@ -102,28 +101,10 @@ async function login(req, res) {
   return res.json(ok({ custom_token: customToken }));
 }
 
-async function bootstrapAdmin(req, res) {
-  const secret = String(req.get('x-sirms-bootstrap-secret') || '');
-  if (!secret || secret !== bootstrapSecret.value()) return res.status(403).json(fail(403, 'Invalid setup credential.'));
-  const existing = await db.collection('users').where('role', '==', 'admin').limit(1).get();
-  if (!existing.empty) return res.status(409).json(fail(409, 'An administrator account already exists.'));
-  const body = req.body || {};
-  const email = String(body.email || '').trim().toLowerCase();
-  const username = String(body.username || '').trim().toLowerCase();
-  const name = String(body.name || '').trim();
-  const password = String(body.password || '');
-  if (!email || !username || !name || !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,72}$/.test(password)) return res.status(422).json(fail(422, 'Provide name, email, username, and a strong password.'));
-  const account = await getAuth().createUser({ email, password, displayName: name });
-  const profile = { id: 1, uid: account.uid, name, email, username, role: 'admin', status: 'active', title: 'University Registrar', student_id: null, created_at: now(), updated_at: now(), last_login_at: null };
-  await db.collection('users').doc('1').set(profile);
-  return res.status(201).json(ok({ id: 1, email, username, role: 'admin' }, { message: 'Administrator account created.' }));
-}
-
 async function apiHandler(req, res) {
   setCors(req, res);
   if (req.method === 'OPTIONS') return res.status(204).end();
   const path = req.path.replace(/\/$/, '') || '/';
-  if (path === '/setup/bootstrap-admin' && req.method === 'POST') return bootstrapAdmin(req, res);
   if (path === '/auth/login' && req.method === 'POST') return login(req, res);
 
   const identity = await authUser(req);
@@ -181,7 +162,7 @@ async function apiHandler(req, res) {
   return res.status(200).json(result);
 }
 
-exports.api = onRequest({ region: 'asia-southeast1', cors: false, secrets: [bootstrapSecret], timeoutSeconds: 120 }, (req, res) => {
+exports.api = onRequest({ region: 'us-central1', cors: false, timeoutSeconds: 120 }, (req, res) => {
   Promise.resolve(apiHandler(req, res)).catch((error) => {
     console.error('SIRMS API error', error);
     if (!res.headersSent) res.status(500).json(fail(500, 'Unexpected server error.'));

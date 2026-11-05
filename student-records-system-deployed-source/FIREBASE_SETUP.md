@@ -1,55 +1,66 @@
-# Firebase setup for SIRMS
+# Deploy SIRMS to Firebase
 
-The app uses Firebase Authentication for credentials and a Cloud Functions API backed by Cloud Firestore. The browser never reads or writes Firestore directly; `firestore.rules` denies direct client access and the API checks the Firebase ID token and user role.
+SIRMS uses Firebase Authentication for sign-in and Cloud Firestore behind an authenticated Cloud Functions API. The browser never reads or writes Firestore directly. The deployed Firestore rules deny direct client access.
 
-## One-time project setup
+## 1. Check project settings
 
-1. In Firebase Console, open project `sirm-cf763`.
-2. Create a Cloud Firestore database. Choose the Singapore (`asia-southeast1`) location if the database has not been created yet. A Firestore database's location cannot be changed after creation.
-3. In Authentication, enable **Email/Password**.
-4. Make sure the project uses the **Blaze** plan before deploying Cloud Functions.
-5. Install Node.js 22 and Firebase CLI, then from this directory run:
+Open Firebase project `sirm-cf763`.
 
-   ```powershell
-   npm install --global firebase-tools
-   firebase login
-   firebase use sirm-cf763
-   Set-Location functions
-   npm install
-   Set-Location ..
-   firebase functions:secrets:set SIRMS_BOOTSTRAP_SECRET
-   firebase deploy --only firestore:rules,functions
-   ```
+- A default Cloud Firestore database already exists in `nam5`. Keep it; its location cannot be changed. The API is configured for `us-central1`, the nearest supported Functions region for `nam5`.
+- Under **Authentication → Sign-in method**, enable **Email/Password**.
+- Cloud Functions deployment requires the **Blaze** plan.
 
-   Enter a long random value when prompted for the bootstrap secret. Keep it private. Cloud Functions deploys to `asia-southeast1`; `config.js` already points the frontend to that API URL.
+## 2. Deploy Hosting, rules, and API
 
-## Create the first administrator
-
-After deployment, use PowerShell to send one request. Replace the example values and secret with your own. The password must be at least eight characters and include uppercase, lowercase, and a number.
+Open PowerShell and run:
 
 ```powershell
-$bootstrapSecret = Read-Host "Bootstrap secret"
-$adminPassword = Read-Host "New administrator password" -AsSecureString
-$adminPasswordText = [System.Net.NetworkCredential]::new('', $adminPassword).Password
-$body = @{
-  name = "School Registrar"
-  email = "registrar@your-school.edu"
-  username = "registrar"
-  password = $adminPasswordText
-} | ConvertTo-Json
-Invoke-RestMethod -Method Post `
-  -Uri "https://asia-southeast1-sirm-cf763.cloudfunctions.net/api/setup/bootstrap-admin" `
-  -Headers @{ "x-sirms-bootstrap-secret" = $bootstrapSecret } `
-  -ContentType "application/json" -Body $body
-Remove-Variable adminPasswordText, adminPassword, bootstrapSecret
+Set-Location "C:\Users\icaru\OneDrive\Documents\ChatGPT\Student Information and Records Management System 2"
+git pull origin main
+Set-Location ".\student-records-system-deployed-source"
+npm install --global firebase-tools
+firebase login
+firebase use sirm-cf763
+Set-Location ".\functions"
+npm install
+Set-Location ..
+firebase deploy --only hosting,firestore:rules,functions
 ```
 
-Bootstrap succeeds only once, while there is no administrator profile in Firestore. Afterward, sign in at the app with the email or username and password you created. The administrator can create teacher and student accounts in User Management.
+The Firebase CLI prints the Hosting URL after deployment. The API endpoint is `https://us-central1-sirm-cf763.cloudfunctions.net/api`.
 
-## Firestore data
+## 3. Create the first administrator
 
-The API stores records in `users`, `students`, `enrollments`, `subjects`, `academic_records`, and `system_logs`. Existing browser demo fixtures are not copied automatically. Create or import real student and academic records through the app after the first admin signs in.
+The app does not allow public account registration. Create the first admin from Firebase Console:
 
-The first Functions adapter reuses the existing module validation and report logic by loading the six collections into the request handler. This keeps the current screens compatible, but reads the collections for each API request. For a larger live school dataset, replace those whole-collection reads with indexed, role-scoped Firestore queries before production rollout.
+1. In **Authentication → Users**, click **Add user**. Enter the registrar's email and a strong password, then save.
+2. Copy the new user's **UID**.
+3. Open **Firestore Database → Data**. Create a collection named `users`; set the document ID to `1`.
+4. Add these fields. Use the field types shown:
 
-Never add Firebase service-account JSON files, bootstrap secrets, or real student information to GitHub. The Firebase web config in `assets/js/core/config.js` is client configuration; data access is protected by API authentication and Firestore rules.
+   | Field | Type | Value |
+   |---|---|---|
+   | `id` | number | `1` |
+   | `uid` | string | The Auth UID you copied |
+   | `name` | string | Registrar's display name |
+   | `email` | string | Same email used in Authentication, lowercase |
+   | `username` | string | Registrar's username, lowercase |
+   | `role` | string | `admin` |
+   | `status` | string | `active` |
+   | `title` | string | `University Registrar` |
+   | `student_id` | null | `null` |
+   | `created_at` | string | Current date/time, e.g. `2026-11-05 20:00:00` |
+   | `updated_at` | string | Same date/time format |
+   | `last_login_at` | null | `null` |
+
+5. Visit the Hosting URL and sign in with that email or username and password.
+
+The Auth UID must exactly match the `uid` field in Firestore. Do not add a `password` field to Firestore.
+
+## Notes
+
+Existing browser demo data is not automatically copied to Firestore. Add actual student and academic records after signing in as admin.
+
+The current API adapter reuses the existing module validation and report logic by loading the six collections for each API request. That keeps the screens compatible for the current project scale; larger datasets should move to indexed, role-scoped Firestore queries before production use.
+
+Never commit service-account JSON files or real student information. The Firebase web config in `assets/js/core/config.js` is client configuration; Firestore access is restricted by server-side role checks and Firestore rules.
