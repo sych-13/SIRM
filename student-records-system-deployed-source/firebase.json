@@ -1,24 +1,25 @@
 {
   "firestore": { "rules": "firestore.rules" },
-  "hosting": {
-    "public": ".",
-    "ignore": [
-      "firebase.json",
-      "firestore.rules",
-      "**/node_modules/**",
-      "**/.*",
-      "firebase-debug.log",
-      "firestore-debug.log"
-    ],
-    "headers": [
-      {
+  "hosting": [
+    {
+      "site": "sirm-cf763",
+      "public": ".",
+      "ignore": ["firebase.json", "firestore.rules", "**/node_modules/**", "**/.*", "firebase-debug.log", "firestore-debug.log"],
+      "headers": [{
         "source": "**/*.@(html|js|css)",
-        "headers": [
-          { "key": "Cache-Control", "value": "no-cache, max-age=0, must-revalidate" }
-        ]
-      }
-    ]
-  },
+        "headers": [{ "key": "Cache-Control", "value": "no-cache, max-age=0, must-revalidate" }]
+      }]
+    },
+    {
+      "site": "sirms-38918",
+      "public": ".",
+      "ignore": ["firebase.json", "firestore.rules", "**/node_modules/**", "**/.*", "firebase-debug.log", "firestore-debug.log"],
+      "headers": [{
+        "source": "**/*.@(html|js|css)",
+        "headers": [{ "key": "Cache-Control", "value": "no-cache, max-age=0, must-revalidate" }]
+      }]
+    }
+  ],
   "emulators": {
     "auth": { "port": 9099 },
     "firestore": { "port": 8080 },
