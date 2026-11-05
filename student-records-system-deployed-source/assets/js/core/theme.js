@@ -14,7 +14,7 @@
     try { localStorage.setItem(KEY, theme); } catch (_) { /* storage may be disabled */ }
     document.querySelectorAll('[data-theme-toggle]').forEach((button) => {
       const dark = theme === 'dark';
-      button.innerHTML = `<i class="bi ${dark ? 'bi-sun-fill' : 'bi-moon-stars-fill'}" aria-hidden="true"></i><span class="visually-hidden">Switch to ${dark ? 'light' : 'dark'} mode</span>`;
+      button.innerHTML = `<i class="bi ${dark ? 'bi-sun-fill' : 'bi-moon-stars-fill'}" aria-hidden="true"></i><span class="theme-toggle-label">${dark ? 'Light' : 'Dark'} mode</span><span class="visually-hidden">Switch to ${dark ? 'light' : 'dark'} mode</span>`;
       button.setAttribute('aria-label', `Switch to ${dark ? 'light' : 'dark'} mode`);
       button.setAttribute('title', `Switch to ${dark ? 'light' : 'dark'} mode`);
       button.setAttribute('aria-pressed', String(dark));

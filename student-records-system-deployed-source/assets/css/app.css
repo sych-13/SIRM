@@ -52,7 +52,12 @@ a { color: var(--blue-600); }
 .btn-soft:hover { background: var(--blue-100); color: var(--navy-800); }
 .btn-icon { width: 34px; height: 34px; padding: 0; border-radius: 9px; }
 .form-control, .form-select { border-radius: 10px; border-color: #d6dfee; padding: .6rem .85rem; }
-.form-select { padding-right: 2.65rem; background-position: right .9rem center; }
+.form-select {
+  /* Keep the native arrow visually separate from the selected label. */
+  padding-right: 3.25rem;
+  background-position: right 1rem center;
+  background-size: 16px 12px;
+}
 .form-control:focus, .form-select:focus { border-color: var(--blue-500); box-shadow: 0 0 0 .22rem rgba(47, 116, 230, .15); }
 .form-label { font-weight: 600; font-size: .85rem; color: var(--ink-600); margin-bottom: .35rem; }
 .form-label .req { color: var(--danger); }
@@ -195,6 +200,8 @@ a { color: var(--blue-600); }
 
 .toolbar { display: flex; flex-wrap: wrap; gap: .65rem; align-items: center; padding: 1rem 1.25rem; border-bottom: 1px solid var(--line); }
 .toolbar .search { flex: 1 1 260px; max-width: 380px; }
+/* Filters use automatic widths, so reserve enough room for the label and arrow. */
+.toolbar .form-select.w-auto { min-width: 158px; padding-right: 3.25rem !important; background-position: right 1rem center !important; }
 .table-foot { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .75rem; padding: .85rem 1.25rem; border-top: 1px solid var(--line); font-size: .83rem; color: var(--ink-600); }
 .pagination { --bs-pagination-border-radius: 8px; --bs-pagination-font-size: .82rem; --bs-pagination-active-bg: var(--blue-600); --bs-pagination-active-border-color: var(--blue-600); margin: 0; }
 
@@ -297,8 +304,9 @@ tr.is-saved td { background: var(--success-bg) !important; transition: backgroun
 .skeleton-filter { width: 120px; height: 40px; border-radius: 10px; }
 .skeleton-cell { width: min(130px, 90%); height: 12px; }
 .skeleton-panel .table thead th { background: transparent; }
-.theme-toggle { flex: none; border: 1px solid var(--line); background: var(--surface); color: var(--ink-600); }
+.theme-toggle { flex: none; width: auto; min-width: 38px; border: 1px solid var(--line); background: var(--surface); color: var(--ink-600); }
 .theme-toggle:hover { color: var(--blue-600); border-color: var(--blue-500); background: var(--blue-50); }
+.theme-toggle .theme-toggle-label { font-size: .78rem; line-height: 1; white-space: nowrap; }
 .auth-panel { position: relative; }
 .auth-theme-toggle { position: absolute; top: 1.25rem; right: 1.25rem; }
 
@@ -399,6 +407,11 @@ html[data-theme="dark"] tr.is-dirty td { background: #382f1c !important; }
 html[data-theme="dark"] .planned-hero { background: linear-gradient(130deg, #172943, #121d2f 60%); border-color: #29476d; }
 html[data-theme="dark"] .pagination { --bs-pagination-bg: #111c2e; --bs-pagination-color: var(--ink-600); --bs-pagination-border-color: var(--line); --bs-pagination-hover-bg: #203550; --bs-pagination-hover-color: #fff; --bs-pagination-hover-border-color: var(--line); --bs-pagination-disabled-bg: #111c2e; --bs-pagination-disabled-color: #65748c; }
 html[data-theme="dark"] .page-link { background-color: #111c2e; border-color: var(--line); color: var(--ink-600); }
+
+@media (max-width: 575.98px) {
+  .toolbar .form-select.w-auto { min-width: 0; flex: 1 1 100%; }
+  .theme-toggle .theme-toggle-label { display: none; }
+}
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }

@@ -47,7 +47,8 @@
       window.scrollTo(0, 0);
       container.classList.remove('page-enter');
       container.innerHTML = UI.pageSkeleton();
-      await new Promise((resolve) => setTimeout(resolve, 150));
+      // A short minimum lets users actually see the loading state on fast connections.
+      await new Promise((resolve) => setTimeout(resolve, 380));
       if (sequence !== resolveSequence) return;
       const render = typeof def.render === 'function' ? def.render : def.render[user.role];
       const page = render(container, { query, user });
