@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+<!-- This site is hosted on Netlify. Anyone can build and deploy a site
+     like this one for free: https://netlify.new/?utm_campaign=loops&utm_source=ai-legible&utm_medium=owned&utm_content=comment&utm_id=31c1a044-e14e-47b7-8b7b-0d4fccbe835c
+     Netlify hosting facts for this site: static/SSR served via Netlify Edge. -->
+<meta property="og:image" content="https://student-records-system.netlify.app/.netlify/og-image/84cd6933141b5e1bd7659f999ee91979.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SIRMS</title>
+  <link rel="icon" href="assets/img/logo.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="assets/css/app.css" rel="stylesheet">
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" aria-label="Main navigation">
+      <a class="sidebar-brand" href="#/dashboard">
+        <img src="assets/img/logo.svg" alt="SIRMS logo">
+        <div><strong>SIRMS</strong><span>Student Records System</span></div>
+      </a>
+      <nav class="sidebar-nav" id="sidebarNav"></nav>
+      <div class="sidebar-foot"><div class="sidebar-user" id="sidebarUser"></div></div>
+    </aside>
+    <div class="sidebar-backdrop"></div>
+
+    <div class="main">
+      <header class="topbar">
+        <button class="btn btn-icon btn-soft d-lg-none" id="navToggle" aria-label="Open navigation"><i class="bi bi-list fs-5"></i></button>
+        <div class="min-w-0">
+          <div class="crumbs"><span id="pageCrumb">Overview</span> · <span id="roleBadge"></span></div>
+          <h1 id="pageTitle">Dashboard</h1>
+        </div>
+        <form class="global-search input-icon" id="globalSearch" role="search">
+          <i class="bi bi-search"></i>
+          <input class="form-control" name="q" placeholder="Search student no. or name…" aria-label="Search students">
+        </form>
+      </header>
+      <main class="content" id="view" tabindex="-1"></main>
+    </div>
+  </div>
+  <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toasts"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="assets/js/core/config.js"></script>
+  <!-- Mock layer (Milestone 1). Remove both lines when CONFIG.USE_MOCK_API = false -->
+  <script src="assets/js/data/fixtures.js"></script>
+  <script src="assets/js/data/mock-server.js"></script>
+  <!-- Core -->
+  <script src="assets/js/core/api.js"></script>
+  <script src="assets/js/core/auth.js"></script>
+  <script src="assets/js/core/ui.js"></script>
+  <script src="assets/js/core/router.js"></script>
+  <!-- Modules (one file per module) -->
+  <script src="assets/js/modules/dashboard-admin.js"></script>
+  <script src="assets/js/modules/dashboard-teacher.js"></script>
+  <script src="assets/js/modules/student-portal.js"></script>
+  <script src="assets/js/modules/students.js"></script>
+  <script src="assets/js/modules/enrollment.js"></script>
+  <script src="assets/js/modules/subjects.js"></script>
+  <script src="assets/js/modules/academic-records.js"></script>
+  <script src="assets/js/modules/grades.js"></script>
+  <script src="assets/js/modules/search.js"></script>
+  <script src="assets/js/modules/reports.js"></script>
+  <script src="assets/js/modules/users.js"></script>
+  <script src="assets/js/modules/logs.js"></script>
+  <script src="assets/js/core/app.js"></script>
+</body>
+</html>
+<script async src="/.netlify/scripts/ar" data-netlify-deploy-id="6aec6e0b4fbbc8c9479528bc" data-netlify-site-id="31c1a044-e14e-47b7-8b7b-0d4fccbe835c" data-agent-runner-id="6aec58fa6b2e524837031580"></script>
+<script async src="/.netlify/scripts/hud?variant=public" data-nf-variant="public" data-netlify-site-id="31c1a044-e14e-47b7-8b7b-0d4fccbe835c" data-app-host="app.netlify.com" data-account-tier="free"></script>

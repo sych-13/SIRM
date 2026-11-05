@@ -1,0 +1,141 @@
+{
+  "source": "https://student-records-system.netlify.app/",
+  "captured_utc": "2026-11-05T11:58:25.4390126Z",
+  "verified_files": [
+    {
+      "path": "app.html",
+      "bytes": 4403,
+      "sha256": "3DFDAB2B0656D6BCB0FE5B0A7CFF63FED5C74975E4992F960C7BA8346E550EDD"
+    },
+    {
+      "path": "index.html",
+      "bytes": 6937,
+      "sha256": "310AEE99894483FD89BE91672100F2F6575D0C2B2121C3C751F41CD44E02AAC1"
+    },
+    {
+      "path": "assets\\css\\app.css",
+      "bytes": 22060,
+      "sha256": "04F48474724463F1AC781AABC7245AFA57EF05E885D72B8BFB3B83B8F222F1AD"
+    },
+    {
+      "path": "assets\\img\\logo.svg",
+      "bytes": 408,
+      "sha256": "AFE2ACD4B512BEE6BCEE59E22579C45C1F27819A6805D7B9AC27E9244F60602D"
+    },
+    {
+      "path": "assets\\js\\core\\api.js",
+      "bytes": 4543,
+      "sha256": "7B51F3069364EC281486FCDD28438D1EF8D24C6B7995EA1A551151105CA6B019"
+    },
+    {
+      "path": "assets\\js\\core\\app.js",
+      "bytes": 4144,
+      "sha256": "499AA9BE07F453B8978B542C7ED94AC57DC61238C352D394A5492554F52D0728"
+    },
+    {
+      "path": "assets\\js\\core\\auth.js",
+      "bytes": 1619,
+      "sha256": "12DD5B1771F93A33FB7C8C765F2A414C425B201CB94B1AC4F57944A33858593D"
+    },
+    {
+      "path": "assets\\js\\core\\config.js",
+      "bytes": 1128,
+      "sha256": "80569BCED140FB64F12CE2364EDB5B34E1D130CF352355EF2989B034F9F38B10"
+    },
+    {
+      "path": "assets\\js\\core\\router.js",
+      "bytes": 2326,
+      "sha256": "CB0F0C4DCF157E47DDD82890856451A0289B482EBA909A1E03DFE215248E0F2A"
+    },
+    {
+      "path": "assets\\js\\core\\ui.js",
+      "bytes": 14021,
+      "sha256": "900F055A86C1025F80A88393A62583FA35DEF471A3D9934132069FAE081AD9C1"
+    },
+    {
+      "path": "assets\\js\\data\\fixtures.js",
+      "bytes": 10367,
+      "sha256": "6D5294324980884B0FA6C8AA050C5D1DA199206EC486E2F1C4F967D3AA0D14D3"
+    },
+    {
+      "path": "assets\\js\\data\\mock-server.js",
+      "bytes": 48476,
+      "sha256": "F64FE587CEE80EB0A1DB7015B938F2D0B37F79C9BEE8CCB97E3EF4542415244D"
+    },
+    {
+      "path": "assets\\js\\modules\\academic-records.js",
+      "bytes": 13166,
+      "sha256": "916C4D9C81C21A57CB6C9875E2B55100577FFBD95B1EFE0D7C5EB03F278715EF"
+    },
+    {
+      "path": "assets\\js\\modules\\dashboard-admin.js",
+      "bytes": 7524,
+      "sha256": "99E920AB8C699C38E1D7EDD3798AE97DB34053720F60E1726D4BB6D662FA5D87"
+    },
+    {
+      "path": "assets\\js\\modules\\dashboard-teacher.js",
+      "bytes": 3992,
+      "sha256": "8BD808CE8ED9F8AA3908131E3F61B2639D46C98526346836577DCE58DD700182"
+    },
+    {
+      "path": "assets\\js\\modules\\enrollment.js",
+      "bytes": 15293,
+      "sha256": "3267F85234D9E3EBEE1C8410EB8AC2B783A21BD76EA34137C0E3E99CB5874D5B"
+    },
+    {
+      "path": "assets\\js\\modules\\grades.js",
+      "bytes": 9060,
+      "sha256": "3A7147A8E394ED996510CB568721ED5BC200858BD98D803C322F52309F58C953"
+    },
+    {
+      "path": "assets\\js\\modules\\login.js",
+      "bytes": 2423,
+      "sha256": "C17BBA062B5A8201623C86041E2BCD63E4C6D1690A6FA9D1D081C523004A3C5F"
+    },
+    {
+      "path": "assets\\js\\modules\\logs.js",
+      "bytes": 5093,
+      "sha256": "350556747FCDD71055042181ABBE57CA8E756795282BC0DA680C9FC111CD322F"
+    },
+    {
+      "path": "assets\\js\\modules\\reports.js",
+      "bytes": 13718,
+      "sha256": "33B715F80E59722263E34A98EC3E39D1AE74B9283DF8E92394BCA3ADDDCDF6D2"
+    },
+    {
+      "path": "assets\\js\\modules\\search.js",
+      "bytes": 6386,
+      "sha256": "486E03F6D13AFF17F714A3FB02555D684519CBA0A2780E1F99D4573BF3C080AF"
+    },
+    {
+      "path": "assets\\js\\modules\\student-portal.js",
+      "bytes": 8705,
+      "sha256": "09D0134A50AFF8DE3B75E9778BDAE5C010F40762D6B04DC4BEFE1F7A822C9697"
+    },
+    {
+      "path": "assets\\js\\modules\\students.js",
+      "bytes": 24388,
+      "sha256": "612653A9989026CB9F6B02D6224A2E2C002A3C0FB099A20424A3C48E65E345DA"
+    },
+    {
+      "path": "assets\\js\\modules\\subjects.js",
+      "bytes": 10320,
+      "sha256": "8785019860FFB99F1F44C3B85BDB0A33EDF1667541C2716EA6484DB7EFC1EE74"
+    },
+    {
+      "path": "assets\\js\\modules\\users.js",
+      "bytes": 16881,
+      "sha256": "9ED427D120B6B9852C7445DD9137884797284AA95920CD93F3E695DDC101F097"
+    }
+  ],
+  "external_dependencies": [
+    "Bootstrap 5.3.3 CSS and JS via cdn.jsdelivr.net",
+    "Bootstrap Icons 1.11.3 via cdn.jsdelivr.net",
+    "Plus Jakarta Sans via fonts.googleapis.com"
+  ],
+  "notes": [
+    "Files are the publicly deployed client-side assets.",
+    "No source repository URL was present in the public HTML, CSS, JavaScript, or deployment metadata.",
+    "This package excludes third-party CDN assets and any unavailable build or server-side source."
+  ]
+}

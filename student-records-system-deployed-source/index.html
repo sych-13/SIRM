@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+<!-- This site is hosted on Netlify. Anyone can build and deploy a site
+     like this one for free: https://netlify.new/?utm_campaign=loops&utm_source=ai-legible&utm_medium=owned&utm_content=comment&utm_id=31c1a044-e14e-47b7-8b7b-0d4fccbe835c
+     Netlify hosting facts for this site: static/SSR served via Netlify Edge. -->
+<meta property="og:image" content="https://student-records-system.netlify.app/.netlify/og-image/84cd6933141b5e1bd7659f999ee91979.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sign in · SIRMS — Student Information & Records Management System</title>
+  <meta name="description" content="Secure portal for student profiles, enrollment, academic records and grades.">
+  <link rel="icon" href="assets/img/logo.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="assets/css/app.css" rel="stylesheet">
+</head>
+<body>
+  <main class="auth-wrap">
+    <section class="auth-brand">
+      <div class="d-flex align-items-center gap-2">
+        <img src="assets/img/logo.svg" width="44" height="44" alt="School logo">
+        <div><strong class="d-block">SIRMS</strong><small class="opacity-75">Office of the University Registrar</small></div>
+      </div>
+      <div class="my-5 my-lg-0">
+        <p class="small-caps mb-2" style="color:var(--sky-400)">Student Information & Records Management</p>
+        <h1 class="mb-3">Every student record, one secure place.</h1>
+        <p class="lead mb-4">Profiles, enrollment, academic records and grades in one secure system, with access set by role for registrars, faculty and students.</p>
+        <div class="auth-features d-grid gap-3">
+          <div class="auth-feature"><i class="bi bi-shield-lock"></i><div><strong>Role-based access</strong>Administrators, teachers and students each see only what they're permitted to.</div></div>
+          <div class="auth-feature"><i class="bi bi-journal-richtext"></i><div><strong>Complete academic history</strong>Enrollment terms, subjects, units and grades kept together.</div></div>
+          <div class="auth-feature"><i class="bi bi-file-earmark-arrow-down"></i><div><strong>Reports on demand</strong>Master lists and grade reports you can print or export as PDF/CSV.</div></div>
+        </div>
+      </div>
+      <div class="auth-foot small opacity-50">© <span id="yr"></span> SIRMS · For authorized personnel and enrolled students only.</div>
+    </section>
+
+    <section class="auth-panel">
+      <div class="auth-card">
+        <div class="mb-4">
+          <h2 class="h3 fw-bold mb-1">Sign in to your account</h2>
+          <p class="text-muted mb-0">Use your school email or username.</p>
+        </div>
+
+        <div id="loginAlert" class="alert d-none d-flex align-items-start gap-2" role="alert"></div>
+
+        <form id="loginForm" novalidate>
+          <div class="mb-3">
+            <label class="form-label" for="identifier">Email or username</label>
+            <div class="input-icon">
+              <i class="bi bi-person"></i>
+              <input class="form-control" id="identifier" name="identifier" autocomplete="username" placeholder="you@sirms.edu" required>
+              <div class="invalid-feedback" data-for="identifier">Please enter your email or username.</div>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label d-flex justify-content-between" for="password"><span>Password</span></label>
+            <div class="input-group">
+              <span class="input-group-text bg-white"><i class="bi bi-lock text-muted"></i></span>
+              <input class="form-control border-start-0 border-end-0" id="password" name="password" type="password" autocomplete="current-password" placeholder="••••••••" required>
+              <button class="btn btn-outline-secondary border-start-0 bg-white text-muted" type="button" id="togglePw" aria-label="Show password"><i class="bi bi-eye"></i></button>
+              <div class="invalid-feedback" data-for="password">Please enter your password.</div>
+            </div>
+          </div>
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="remember" name="remember">
+              <label class="form-check-label small" for="remember">Remember me on this device</label>
+            </div>
+            <span class="small text-muted" title="Password resets are handled by the registrar">Forgot password? Contact the registrar</span>
+          </div>
+          <button class="btn btn-primary w-100 py-2" type="submit" id="loginBtn"><i class="bi bi-box-arrow-in-right"></i>Sign in</button>
+        </form>
+
+        <div class="demo-accounts mt-4">
+          <p class="small-caps mb-2">Demo accounts: click to fill in</p>
+          <div class="row g-2">
+            <div class="col-4"><button type="button" data-id="admin@sirms.edu" data-pw="Admin@123"><strong>Admin</strong>Registrar</button></div>
+            <div class="col-4"><button type="button" data-id="r.valencia@sirms.edu" data-pw="Teacher@123"><strong>Teacher</strong>Faculty</button></div>
+            <div class="col-4"><button type="button" data-id="2023-01001" data-pw="Student@123"><strong>Student</strong>Andrea</button></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="assets/js/core/config.js"></script>
+  <!-- Mock layer (Milestone 1). Remove both lines when CONFIG.USE_MOCK_API = false -->
+  <script src="assets/js/data/fixtures.js"></script>
+  <script src="assets/js/data/mock-server.js"></script>
+  <script src="assets/js/core/api.js"></script>
+  <script src="assets/js/core/auth.js"></script>
+  <script src="assets/js/modules/login.js"></script>
+</body>
+</html>
+<script async src="/.netlify/scripts/ar" data-netlify-deploy-id="6aec6e0b4fbbc8c9479528bc" data-netlify-site-id="31c1a044-e14e-47b7-8b7b-0d4fccbe835c" data-agent-runner-id="6aec58fa6b2e524837031580"></script>
+<script async src="/.netlify/scripts/hud?variant=public" data-nf-variant="public" data-netlify-site-id="31c1a044-e14e-47b7-8b7b-0d4fccbe835c" data-app-host="app.netlify.com" data-account-tier="free"></script>
