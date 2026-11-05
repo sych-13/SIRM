@@ -112,7 +112,8 @@
     const e = {};
     ['student_number', 'first_name', 'last_name', 'date_of_birth', 'gender', 'address', 'contact_number', 'email', 'guardian_name', 'guardian_contact']
       .forEach((f) => { if (!d[f]) e[f] = 'This field is required.'; });
-    if (d.student_number && !/^\d{4}-\d{5}$/.test(d.student_number)) e.student_number = 'Use the format YYYY-NNNNN (e.g. 2025-01234).';
+    if (d.student_number) d.student_number = d.student_number.toUpperCase();
+    if (d.student_number && !/^(?:\d{4}-\d{5}|CA\d{9})$/.test(d.student_number)) e.student_number = 'Use YYYY-NNNNN or CA followed by 9 digits (e.g. CA202601209).';
     if (d.student_number && !e.student_number && db.students.some((s) => s.student_number === d.student_number && s.id !== ignoreId)) e.student_number = 'This student number is already registered.';
     if (d.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(d.email)) e.email = 'Enter a valid email address.';
     if (d.email && !e.email && db.students.some((s) => s.email.toLowerCase() === d.email.toLowerCase() && s.id !== ignoreId)) e.email = 'This email is already used by another student.';
