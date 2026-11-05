@@ -1,8 +1,80 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // All reads and writes go through authenticated Cloud Functions using Admin SDK.
-    // Admin SDK calls use IAM and do not rely on these client rules.
+    function signedIn() {
+      return request.auth != null;
+    }
+    function roleDoc() {
+      return get(/databases/$(database)/documents/user_roles/$(request.auth.uid)).data;
+    }
+    function activeUser() {
+      return signedIn()
+        && exists(/databases/$(database)/documents/user_roles/$(request.auth.uid))
+        && roleDoc().status == 'active';
+    }
+    function admin() {
+      return activeUser() && roleDoc().role == 'admin';
+    }
+    function teacher() {
+      return activeUser() && roleDoc().role == 'teacher';
+    }
+    function student() {
+      return activeUser() && roleDoc().role == 'student';
+    }
+    function assignedTeacher() {
+      return teacher() && request.auth.uid in resource.data.teacher_uids;
+    }
+    function ownStudent() {
+      return student() && resource.data.owner_uid == request.auth.uid;
+    }
+
+    match /user_roles/{uid} {
+      allow get: if signedIn() && (request.auth.uid == uid || admin());
+      allow list: if admin();
+      allow create, update, delete: if admin();
+    }
+
+    match /users/{id} {
+      allow get: if admin() || (activeUser() && resource.data.uid == request.auth.uid);
+      allow list: if admin() || (activeUser() && resource.data.uid == request.auth.uid);
+      allow create, update, delete: if admin();
+    }
+
+    // Minimal teacher names used to render records; email addresses are not stored here.
+    match /teacher_directory/{id} {
+      allow read: if activeUser();
+      allow write: if admin();
+    }
+
+    match /students/{id} {
+      allow read: if admin() || assignedTeacher() || ownStudent();
+      allow create, update, delete: if admin();
+    }
+
+    match /subjects/{id} {
+      allow read: if activeUser();
+      allow create, update, delete: if admin();
+    }
+
+    match /enrollments/{id} {
+      allow read: if admin() || assignedTeacher() || ownStudent();
+      allow create, update, delete: if admin();
+    }
+
+    match /academic_records/{id} {
+      allow read: if admin() || assignedTeacher() || ownStudent();
+      allow create, delete: if admin();
+      allow update: if admin() || (assignedTeacher()
+        && request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['grade', 'remarks', 'encoded_by', 'updated_at', 'teacher_uids', 'owner_uid']));
+    }
+
+    match /system_logs/{id} {
+      allow read: if admin();
+      allow create: if activeUser() && request.resource.data.actor_uid == request.auth.uid;
+      allow update, delete: if admin();
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }

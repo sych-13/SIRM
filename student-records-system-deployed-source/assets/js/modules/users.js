@@ -23,8 +23,8 @@
 
     view.innerHTML = `<div id="usrRoot">
       <div class="d-flex flex-wrap align-items-end justify-content-between gap-3 mb-3">
-        <div><h2 class="h4 fw-bold mb-1">User accounts</h2><p class="text-muted mb-0">Create accounts, assign roles, and control who can sign in.</p></div>
-        <button class="btn btn-primary" id="addUser"><i class="bi bi-person-plus"></i>Create account</button>
+        <div><h2 class="h4 fw-bold mb-1">User accounts</h2><p class="text-muted mb-0">Review profiles, assign roles, and control who can sign in.</p></div>
+        <span class="small text-muted">Create accounts in Firebase Console, then add their Firestore profile.</span>
       </div>
       <div class="card">
         <div class="toolbar">
@@ -91,14 +91,13 @@
     $('#fStatus').addEventListener('change', (e) => { state.status = e.target.value; reload(); });
     const clearFilters = () => { Object.assign(state, { search: '', role: '', status: '' }); ['#fSearch', '#fRole', '#fStatus'].forEach((s) => { $(s).value = ''; }); reload(); };
     $('#fReset').onclick = clearFilters;
-    $('#addUser').onclick = () => openForm();
 
     $('#usrRoot').addEventListener('click', (e) => {
       const b = e.target.closest('[data-act]'); if (!b) return;
       const u = rows.find((x) => x.id === Number(b.dataset.id));
       if (b.dataset.act === 'clear') clearFilters();
       if (b.dataset.act === 'edit') openForm(u);
-      if (b.dataset.act === 'reset') openReset(u);
+      if (b.dataset.act === 'reset') sendReset(u);
       if (b.dataset.act === 'status') toggleStatus(u);
     });
 
@@ -119,6 +118,7 @@
       formEl.elements.password.type = 'password';
       const self = u && u.id === me.id;
       formEl.elements.role.disabled = !!self; formEl.elements.status.disabled = !!self;
+      formEl.elements.email.readOnly = !!u;
       if (u) {
         ['name', 'email', 'username', 'role', 'title', 'status'].forEach((f) => { formEl.elements[f].value = u[f] || ''; });
         if (u.student_id) picker.set({ id: u.student_id, student_number: u.student_number, full_name: u.name });
@@ -144,7 +144,13 @@
       } catch (err) { if (err.status === 422) UI.showFieldErrors(formEl, err.errors); UI.toast(err.message, 'error'); } finally { UI.setBusy(btn, false); }
     });
 
-    // ---------- reset password ----------
+    // ---------- password reset email ----------
+    async function sendReset(u) {
+      try { await Api.post(`/users/${u.id}/reset-password`, {}); UI.toast(`Password reset email sent to ${u.email}.`); }
+      catch (err) { UI.toast(err.message, 'error'); }
+    }
+
+    // The legacy modal remains available to existing markup but is not used by Firebase Auth.
     function openReset(u) {
       resetting = u; pwEl.reset(); UI.showFieldErrors(pwEl, {}); pwEl.elements.password.type = 'password';
       $('#pwWho').textContent = `${u.name} (${u.username})`; pwM.show();
@@ -171,7 +177,6 @@
     }
 
     await load();
-    if (query.new) openForm();
     return () => UI.disposeModals([formM, pwM]);
   }
 

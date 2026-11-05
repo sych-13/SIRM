@@ -1,9 +1,8 @@
-/* Public Firebase web config and Cloud Functions API endpoint. */
+/* Public Firebase web config for the Spark-plan app. */
 window.CONFIG = Object.freeze({
   APP_NAME: 'SIRMS',
   SCHOOL_NAME: 'Student Information & Records Management System',
 
-  API_BASE_URL: 'https://us-central1-sirm-cf763.cloudfunctions.net/api',
   FIREBASE_CONFIG: Object.freeze({
     apiKey: 'AIzaSyDv0LVsT2hb7O_uM8sNQTFo6pqJuWWXeSA',
     authDomain: 'sirm-cf763.firebaseapp.com',

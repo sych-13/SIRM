@@ -6,14 +6,18 @@
 
   window.Auth = {
     async login(identifier, password, remember) {
-      const data = await Api.post('/auth/login', { identifier, password, remember: !!remember, firebase_api_key: CONFIG.FIREBASE_CONFIG.apiKey });
       const firebase = window.SIRMS_FIREBASE;
       await firebase.ready;
       await firebase.setPersistence(firebase.auth, remember ? firebase.browserLocalPersistence : firebase.browserSessionPersistence);
-      await firebase.signInWithCustomToken(firebase.auth, data.custom_token);
-      const user = await Api.get('/auth/me');
-      (remember ? localStorage : sessionStorage).setItem(KEY, JSON.stringify(user));
-      return user;
+      try {
+        await firebase.signInWithEmailAndPassword(firebase.auth, identifier.trim().toLowerCase(), password);
+        const user = await Api.get('/auth/me');
+        (remember ? localStorage : sessionStorage).setItem(KEY, JSON.stringify(user));
+        return user;
+      } catch (error) {
+        await firebase.signOut(firebase.auth);
+        throw error;
+      }
     },
     async logout() {
       try { await Api.post('/auth/logout'); } catch (_) { /* session may already be gone */ }
